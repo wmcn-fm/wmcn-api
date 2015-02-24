@@ -3,6 +3,7 @@
 ##Users
 
 ###Basic routes:
+
 | url | method | action | url params | success | error | data params |
 |:---|:---:|:---:|:---:|:---:|
 | `/users`| GET  | return an array of all user documents | none | 200, `{users: [...]}` | 500 | none |
@@ -19,7 +20,9 @@
 
 
 ##Shows
+
 ###Basic routes:
+
 | url | method | action | url params | success | error | data params |
 |:---|:---:|:---:|:---:|:---:|
 | `/shows` | GET | return all shows | none | 200, `{shows: [...]}` | 500 | none |
@@ -30,7 +33,9 @@
 | `/shows/:id`| PUT  | update one show|  `id`: show's unique mongo OID | 200, `{_id:...}` | 500, error updating; 404, show not found| `req.body` contains params  |
 | `/shows/:id` | DEL | delete a show | `id`: show's unique mongo OID | 200, `'show deleted'` | 500, error deleting; 404, show not found  | none |
 
+
 ###Advanced routes:
+
 | url | method | action | url params | success | error | data params |
 |:---|:---:|:---:|:---:|:---:|
 | `/shows/current` | GET | return all currently active shows | 
@@ -38,7 +43,9 @@
 
 
 ##Playlists
+
 ###Basic routes: 
+
 | url | method | action | url params | success | error | data params |
 |:---|:---:|:---:|:---:|:---:|
 | `/playlists` | GET | return all playlists | none | 200, `{playlists: [...]}` | 500 | none |
@@ -51,7 +58,9 @@
 
 
 ##Applications
+
 ###Basic routes:
+
 | url | method | action | url params | success | error | data params |
 |:---|:---:|:---:|:---:|:---:|
 | `/applications` | GET | return all pending applications | none | 200, `{apps: [...]}` | 500 | none |
