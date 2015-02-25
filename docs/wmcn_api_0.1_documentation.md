@@ -14,6 +14,12 @@
 | `/users/:id`| PUT  | update one user|  `id`: user's unique mongo OID | 200, `{_id:...}` | 500, error updating; 404, user not found| `req.body` contains params  |
 | `/users:id` | DEL | delete a user | `id`: user's unique mongo OID | 200, `'user deleted'` | 500, error deleting; 404, user not found  | none |
 
+###Advanced routes:
+
+| url | method | action | url params | success | error | data params |
+|:---|:---:|:---:|:---:|:---:|
+| `/users/active` | GET | return all currently active users (i.e., `user.hash == null`) | none | 200, `{active users: [...]}` | 500, error fetching; 404, no active users (in between semesters?) | none |
+
 
  
 
@@ -38,7 +44,7 @@
 
 | url | method | action | url params | success | error | data params |
 |:---|:---:|:---:|:---:|:---:|
-| `/shows/current` | GET | return all currently active shows | 
+| `/shows/active` | GET | return all currently active shows (i.e., 0 <= timeslot <= 167) | none | 200, `{active shows: [...]}` | 500, error fetching; 404, no active shows (in between semesters?) | none |
 
 
 
