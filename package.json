@@ -3,8 +3,19 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "node ./bin/www",
+    "test": "mocha test"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wmcn-fm/wmcn-api.git"
+  },
+  "author": "will kent-daggett",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/wmcn-fm/wmcn-api/issues"
+  },
+  "homepage": "https://github.com/wmcn-fm/wmcn-api",
   "dependencies": {
     "body-parser": "~1.0.0",
     "cookie-parser": "~1.0.1",
