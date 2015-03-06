@@ -18,7 +18,7 @@
 
 | url | method | action | url params | success | error | data params |
 |:---|:---:|:---:|:---:|:---:|
-| `/users/active` | GET | return all currently active users (i.e., `user.hash == null`) | none | 200, `{active users: [...]}` | 500, error fetching; 404, no active users (in between semesters?) | none |
+| `/users/active` | GET | return all currently active users (i.e., `user.hash != null`) | none | 200, `{active users: [...]}` | 500, error fetching; 404, no active users (in between semesters?) | none |
 
 
  
@@ -45,6 +45,7 @@
 | url | method | action | url params | success | error | data params |
 |:---|:---:|:---:|:---:|:---:|
 | `/shows/active` | GET | return all currently active shows (i.e., 0 <= timeslot <= 167) | none | 200, `{active shows: [...]}` | 500, error fetching; 404, no active shows (in between semesters?) | none |
+| `/shows/:id/hosts` | GET | returns the user documents associated with a given show | `id`: unique OID | 200, `{users: [...]}` | 500; 404, couldnt find users/show | none |
 
 
 
