@@ -17,6 +17,7 @@ var makeRandomUser = require('../test/utils').makeRandomUser;
 *
 */
 
+//  GET all users
 router.get('/', function(req, res) {
   pg.connect(conString, function(err, client, done) {
     if(err) {
@@ -38,7 +39,7 @@ router.get('/', function(req, res) {
   }); //  end pg.connect
 });
 
-//add new user
+//  POST a new user
 router.post('/', function(req, res) {
   pg.connect(conString, function(err, client, done) {
 
@@ -47,7 +48,7 @@ router.post('/', function(req, res) {
     }
 
     // TODO: when POSTing is set up on the client, uncomment the line below instead of makeRandomUser()
-    // var usrObj = req.body;
+    // var usrObj = req.body.user;
     var usrObj = makeRandomUser();
 
     Users.addUser(client, usrObj, function(err, result) {
@@ -65,12 +66,52 @@ router.post('/', function(req, res) {
   }); //  end pg.connect
 });
 
+
+//  PUT all users
 router.put('/', function(req, res) {
-	res.json(200, {message: '/returns number of updated users'});
+  var updates = req.body.updates;
+
+  pg.connect(conString, function(err, client, done) {
+    if (err) {
+      res.json(500, err);
+    }
+
+    Users.updateAllUsers(client, updates, function(err, result) {
+      done();
+
+      if (err) {
+        res.json(500, err);
+      }
+
+      res.json(200, result);
+
+      client.end();
+    });
+  });
 });
 
+
+//  DELETE all users
 router.delete('/', function(req, res) {
-	res.json(200, {message: '/returns the id of the deleted user'});
+  pg.connect(conString, function(err, client, done) {
+    done();
+    
+    if (err) {
+      res.json(500, err);
+    }
+
+    Users.deleteAllUsers(client, function(err, result) {
+      done();
+
+      if (err) {
+        res.json(500, err);
+      } else {
+        res.json(200, result);
+      }
+
+      client.end();
+    });  // end Uesrs.delete
+  }); //  end pg.connect
 });
 
 /** ==========
@@ -80,20 +121,73 @@ router.delete('/', function(req, res) {
 */
 
 router.get('/:id', function(req, res) {
-	var id = req.params.id;
-	res.json(200, {user: '/returns ' + id + ' s user document'});
+	var user_id = req.params.id;
+
+  pg.connect(conString, function(err, client, done) {
+    if (err) {
+      res.json(500, err);
+    }
+
+    Users.getUserById(client, user_id, function(err, result) {
+      done();
+
+      if (err) {
+        res.json(500, err);
+      }
+
+      res.json(200, result);
+      // res.json(200, {user: '/returns ' + id + ' s user document'});
+      client.end();
+    });
+  });
 });
 
 router.put('/:id', function(req, res) {
-	var id = req.params.id;
-	res.json(200, {user: '/returns ' + id + ' s updated user document'});
+	var user_id = req.params.id;
+  var updates = req.body.updates;
+
+  pg.connect(conString, function(err, client, done) {
+    if (err) {
+      res.json(500, err);
+    }
+
+    Users.updateUserById(client, user_id, updates, function(err, result) {
+      done();
+
+      if (err) {
+        res.json(500, err);
+      } else {
+        res.json(200, result);
+        // res.json(200, {user: '/returns ' + id + ' s updated user document'});
+      }
+
+      client.end();
+    });
+  });
 });
 
 router.delete('/:id', function(req, res) {
-	var id = req.params.id;
-	res.json(200, {message: '/returns the id of the deleted user: ' + id});
-});
+	var user_id = req.params.id;
 
+  pg.connect(conString, function(err, client, done) {
+    if (err) {
+      res.json(500, err);
+    }
+
+    Users.deleteUserById(client, user_id, function(err, result) {
+      done();
+
+      if (err) {
+        res.json(500, err);
+      } else {
+        res.json(200, result);
+        // res.json(200, {message: '/returns the id of the deleted user: ' + id});
+      }
+
+      client.end();
+    });
+  });
+});
 
 
 module.exports = router;

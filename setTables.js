@@ -1,7 +1,7 @@
 var pg = require('pg')
 var user = process.env.USER;
 var pw = process.env.PW;
-var conString = "postgres://" + user + ":" + pw + "@localhost/wmcn-api-test";
+var conString = "postgres://" + user + ":" + pw + "@localhost/wmcntest";
 
 pg.connect(conString, function(err, client, done){
 
