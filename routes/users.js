@@ -4,9 +4,8 @@ var router = express.Router();
 //  require user methods and database connection
 var Users = require('../models/User');
 var pg = require('pg');
-var user = process.env.USER;
-var pw = process.env.PW;
-var conString = "postgres://" + user + ":" + pw + "@localhost/SUP";
+
+var db = require('../db-connect');
 
 //  for testing/development only:
 var makeRandomUser = require('../test/utils').makeRandomUser;
@@ -19,7 +18,7 @@ var makeRandomUser = require('../test/utils').makeRandomUser;
 
 //  GET all users
 router.get('/', function(req, res) {
-  pg.connect(conString, function(err, client, done) {
+  pg.connect(db, function(err, client, done) {
     if(err) {
       res.json(500, err);
     }
@@ -41,7 +40,9 @@ router.get('/', function(req, res) {
 
 //  POST a new user
 router.post('/', function(req, res) {
-  pg.connect(conString, function(err, client, done) {
+  pg.connect(db, function(err, client, done) {
+
+    console.log('db:\t', db);
 
     if (err) {
       res.json(500, err);
@@ -71,7 +72,7 @@ router.post('/', function(req, res) {
 router.put('/', function(req, res) {
   var updates = req.body.updates;
 
-  pg.connect(conString, function(err, client, done) {
+  pg.connect(db, function(err, client, done) {
     if (err) {
       res.json(500, err);
     }
@@ -93,7 +94,7 @@ router.put('/', function(req, res) {
 
 //  DELETE all users
 router.delete('/', function(req, res) {
-  pg.connect(conString, function(err, client, done) {
+  pg.connect(db, function(err, client, done) {
     done();
     
     if (err) {
@@ -123,7 +124,7 @@ router.delete('/', function(req, res) {
 router.get('/:id', function(req, res) {
 	var user_id = req.params.id;
 
-  pg.connect(conString, function(err, client, done) {
+  pg.connect(db, function(err, client, done) {
     if (err) {
       res.json(500, err);
     }
@@ -146,7 +147,7 @@ router.put('/:id', function(req, res) {
 	var user_id = req.params.id;
   var updates = req.body.updates;
 
-  pg.connect(conString, function(err, client, done) {
+  pg.connect(db, function(err, client, done) {
     if (err) {
       res.json(500, err);
     }
@@ -169,7 +170,7 @@ router.put('/:id', function(req, res) {
 router.delete('/:id', function(req, res) {
 	var user_id = req.params.id;
 
-  pg.connect(conString, function(err, client, done) {
+  pg.connect(db, function(err, client, done) {
     if (err) {
       res.json(500, err);
     }
