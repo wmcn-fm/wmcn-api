@@ -29,6 +29,23 @@ pg.connect(db, function(err, client, done){
                 content varchar(240), \
                 created date)";
 
+  var application = "CREATE TABLE IF NOT EXISTS applications ( \
+                    id int PRIMARY KEY, \
+                    first_name int[], \
+                    last_name int[], \
+                    phone int[], \
+                    email varchar(30)[], \
+                    grad_year int[], \
+                    mac_id int[], \
+                    iclass int[], \
+                    created date, \
+                    title varchar(80), \
+                    timeslot int, \
+                    blurb varchar(160), \
+                    availability int[], \
+                    timePref int, \
+                    description varchar(160))";
+
   var assignShow = "CREATE TABLE IF NOT EXISTS assignShow( \
                 rel_id int PRIMARY KEY,\
                 user_id int,\
@@ -64,6 +81,17 @@ pg.connect(db, function(err, client, done){
     done();
   });
 
+    client.query(assignPlaylist, function(err, result){
+      if (err) throw err
+        console.log(result);
+      done();
+    });
+
+    client.query(application, function(err, result) {
+      if (err) throw err;
+      console.log(result);
+      done();
+    })
 
   pg.end();
 });
