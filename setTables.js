@@ -20,7 +20,7 @@ pg.connect(db, function(err, client, done){
   var show = "CREATE TABLE IF NOT EXISTS shows ( \
                 id int PRIMARY KEY, \
                 title varchar(80),\
-                timeslot int,\
+                timeslot int[],\
                 blurb varchar(160),\
                 created date)";
 
@@ -40,7 +40,7 @@ pg.connect(db, function(err, client, done){
                     iclass int[], \
                     created date, \
                     title varchar(80), \
-                    timeslot int, \
+                    timeslot int[], \
                     blurb varchar(160), \
                     availability int[], \
                     timePref int, \
@@ -81,17 +81,17 @@ pg.connect(db, function(err, client, done){
     done();
   });
 
-    client.query(assignPlaylist, function(err, result){
-      if (err) throw err
-        console.log(result);
-      done();
-    });
-
-    client.query(application, function(err, result) {
-      if (err) throw err;
+  client.query(assignPlaylist, function(err, result){
+    if (err) throw err
       console.log(result);
-      done();
-    })
+    done();
+  });
+
+  client.query(application, function(err, result) {
+    if (err) throw err;
+    console.log(result);
+    done();
+  })
 
   pg.end();
 });
