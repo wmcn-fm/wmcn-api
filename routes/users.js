@@ -1,5 +1,5 @@
 var express = require('express');
-var router = express.Router();
+var users = express.Router();
 
 //  require user methods and database connection
 var Users = require('../models/User');
@@ -17,7 +17,7 @@ var makeRandomUser = require('../test/utils').makeRandomUser;
 */
 
 //  GET all users
-router.get('/', function(req, res) {
+users.get('/', function(req, res) {
   pg.connect(db, function(err, client, done) {
     if(err) {
       res.json(500, err);
@@ -39,7 +39,7 @@ router.get('/', function(req, res) {
 });
 
 //  POST a new user
-router.post('/', function(req, res) {
+users.post('/', function(req, res) {
   pg.connect(db, function(err, client, done) {
 
     console.log('db:\t', db);
@@ -60,7 +60,7 @@ router.post('/', function(req, res) {
       }
 
       // console.log('success!\t', result);
-      res.json(200, "done.");
+      res.json(201, "done.");
 
       client.end();
     });   //  end Users.addUser
@@ -69,7 +69,7 @@ router.post('/', function(req, res) {
 
 
 //  PUT all users
-router.put('/', function(req, res) {
+users.put('/', function(req, res) {
   var updates = req.body.updates;
 
   pg.connect(db, function(err, client, done) {
@@ -93,7 +93,7 @@ router.put('/', function(req, res) {
 
 
 //  DELETE all users
-router.delete('/', function(req, res) {
+users.delete('/', function(req, res) {
   pg.connect(db, function(err, client, done) {
     done();
     
@@ -111,7 +111,7 @@ router.delete('/', function(req, res) {
       }
 
       client.end();
-    });  // end Uesrs.delete
+    });  // end Users.delete
   }); //  end pg.connect
 });
 
@@ -121,7 +121,7 @@ router.delete('/', function(req, res) {
 *
 */
 
-router.get('/:id', function(req, res) {
+users.get('/:id', function(req, res) {
 	var user_id = req.params.id;
 
   pg.connect(db, function(err, client, done) {
@@ -143,7 +143,7 @@ router.get('/:id', function(req, res) {
   });
 });
 
-router.put('/:id', function(req, res) {
+users.put('/:id', function(req, res) {
 	var user_id = req.params.id;
   var updates = req.body.updates;
 
@@ -167,7 +167,7 @@ router.put('/:id', function(req, res) {
   });
 });
 
-router.delete('/:id', function(req, res) {
+users.delete('/:id', function(req, res) {
 	var user_id = req.params.id;
 
   pg.connect(db, function(err, client, done) {
@@ -191,4 +191,4 @@ router.delete('/:id', function(req, res) {
 });
 
 
-module.exports = router;
+module.exports = users;
