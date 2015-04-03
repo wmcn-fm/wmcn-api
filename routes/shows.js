@@ -82,6 +82,8 @@ shows.put('/', function(req, res) {
 				res.json(200, result.length);
 				// res.json(200, {message: '/returns number of updated shows'});
 			}
+
+			client.end();
 		});	//	end Shows.updateAllShows
 	});	//	end pg.connect
 });
@@ -89,7 +91,6 @@ shows.put('/', function(req, res) {
 //	DELETE all shows in the table
 shows.delete('/', function(req, res) {
 	pg.connect(db, function(err, client, done) {
-    done();
     
     if (err) {
       res.json(500, err);
@@ -194,13 +195,101 @@ shows.delete('/:id', function(req, res) {
 *
 */
 
-shows.get('/active', function(req, res) {
-	res.json(200, {message: '/returns a list of all active shows'});
+//	GET a list of currently active shows
+//	(i.e, 0 <= shows.timeslot <= 167)
+shows.get('/current', function(req, res) {
+	pg.connect(db, function(err, client, done) {
+		if (err) {
+			res.json(500, err);
+		}
+
+		Shows.getActiveShows(client, function(err, result) {
+			done();
+
+			if (err) {
+				res.json(500, err);
+			} else {
+				res.json(200, result);
+				// res.json(200, {message: '/returns a list of all active shows'});
+			}
+
+			client.end();
+		});
+	});
 });
 
+//	GET the show currently playing at the time of the request
+shows.get('/now', function(req, res) {
+	pg.connect(db, function(err, client, done) {
+		if (err) {
+			res.json(500, err);
+		}
+
+		var timeslot = shows.getCurrentTimeslot();
+		Shows.getShowByTimeslot(client, timeslot, function(err, result) {
+			done();
+
+			if (err) {
+				res.json(500, err);
+			}
+
+			res.json(200, result);
+
+			client.end();
+		});
+
+	})
+});
+
+//	GET a show by its timeslot (0 <= show.timeslot <= 167)
+shows.get('/t/:timeslot', function(req, res) {
+	var ts = req.params.timeslot;
+	pg.connect(db, function(err, client, done) {
+		if (err) {
+			res.json(500, err);
+		}
+
+		Shows.getShowByTimeslot(client, ts, function(err, result) {
+			done();
+
+			if (err) {
+				res.json(500, err);
+			}
+
+			res.json(200, result);
+		});
+	});
+});
+
+//	GET a show's hosts' user objects
 shows.get('/:id/hosts', function(req, res) {
-	var id = req.params.id;
-	res.json(200, {message: '/returns the user documents associated with ' + id + 's show'});
+	var show_id = req.params.id;
+
+	pg.connect(db, function(err, client, done) {
+		if (err) {
+			res.json(500, err);
+		}
+
+		Shows.getHosts(client, show_id, function(err, result) {
+			done();
+
+			if (err) {
+				res.json(500, err);
+			}
+
+			//	FIX ME: make additional call to Users.getUserById for
+			//					each user Id returned, and return a list of userobjs
+			res.json(200, result);
+			// res.json(200, {message: '/returns the user documents associated with ' + id + 's show'});
+
+			client.end();
+		});
+	});
 });
 
 module.exports = shows;
+
+
+
+
+
