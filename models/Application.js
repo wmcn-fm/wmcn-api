@@ -110,11 +110,10 @@ Apps.getAppById = function(client, app_id, cb) {
               availability, timePref, description \
               FROM applications WHERE id = $1";
   client.query(qStr, [app_id], function(err, result){
-      console.log('error from within pg method:\t', err);
     if (err) {
       return cb(err);
     } else {
-      cb(null, result);
+      cb(null, result.rows[0]);
     }  
   });
 }
@@ -127,10 +126,7 @@ Apps.updateAppById = function(client, app_id, updates, cb) {
 
 //  DELETE one user from the table by their unique ID
 Apps.deleteAppById = function(client, app_id, cb) {
-  var qStr = "DELETE id, first_name, last_name, email, \
-              grad_year, mac_id, iclass, created, title, timeslot, blurb, \
-              availability, timePref, description \
-              FROM applications WHERE app_id = $1";
+  var qStr = "DELETE FROM applications WHERE app_id = $1";
   client.query(qStr, [app_id], function(err, result) {
     if (err) {
       return cb(err);
@@ -143,4 +139,4 @@ Apps.deleteAppById = function(client, app_id, cb) {
 
 
 
-module.exports = Users;
+module.exports = Apps;
