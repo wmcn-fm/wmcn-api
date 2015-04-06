@@ -102,7 +102,7 @@ Playlist.getPlaylistById = function(client, playlist_id, cb) {
 		if (err) {
 			return cb(err);
 		} else {
-			cb(null, result);
+			cb(null, result.rows[0]);
 		}
 	});
 }
@@ -113,7 +113,7 @@ Playlist.updatePlaylistById = function(client, playlist_id, updates, cb) {
 }
 
 Playlist.deletePlaylistById = function(client, playlist_id, cb) {
-	var qStr = "DELETE id, content, created FROM playlists WHERE id = $1";
+	var qStr = "DELETE FROM playlists WHERE id = $1";
 	client.query(qStr, [playlist_id], function(err, result) {
 		if (err) {
 			return cb(err);

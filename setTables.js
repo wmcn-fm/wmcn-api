@@ -46,13 +46,11 @@ pg.connect(db, function(err, client, done){
                     timePref int, \
                     description varchar(160))";
 
-  var assignShow = "CREATE TABLE IF NOT EXISTS assignShow( \
-                rel_id int PRIMARY KEY,\
+  var hosts = "CREATE TABLE IF NOT EXISTS assignShow( \
                 user_id int,\
                 show_id int)";
 
-  var assignPlaylist = "CREATE TABLE IF NOT EXISTS assignPlaylist( \
-                rel_id int PRIMARY KEY,\
+  var authors = "CREATE TABLE IF NOT EXISTS assignPlaylist( \
                 show_id,\
                 playlist_id)";
 
@@ -75,13 +73,13 @@ pg.connect(db, function(err, client, done){
     done();
   });
 
-  client.query(assignShow, function(err, result){
+  client.query(hosts, function(err, result){
     if (err) throw err
       console.log(result);
     done();
   });
 
-  client.query(assignPlaylist, function(err, result){
+  client.query(authors, function(err, result){
     if (err) throw err
       console.log(result);
     done();

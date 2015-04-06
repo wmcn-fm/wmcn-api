@@ -26,5 +26,15 @@ var makeRandomShow = function makeRandomShow() {
   return show;
 }
 
+var makeRandomPlaylist = function makeRandomPlaylist() {
+  var pl = {};
+  pl.id = faker.finance.mask();
+  pl.content = faker.lorem.paragraph();
+  pl.created = new Date();
+
+  return pl;
+}
+
 module.exports.makeRandomUser = makeRandomUser;
 module.exports.makeRandomShow = makeRandomShow;
+module.exports.makeRandomPlaylist = makeRandomPlaylist;
