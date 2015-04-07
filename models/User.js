@@ -1,3 +1,5 @@
+var sql = require('sql');
+
 var Users = {};
 
 /**
@@ -83,7 +85,7 @@ Users.updateAllUsers = function(client, updates, cb) {
 Users.addUser = function(client, u, cb) {
   var usrArr = [ u.id, u.first_name, u.last_name, u.email,
                   u.hash, u.grad_year, u.mac_id, u.iclass, u.created ];
-  var qStr = "INSERT INTO users(user_id, first_name, last_name, email, \
+  var qStr = "INSERT INTO users(id, first_name, last_name, email, \
               hash, grad_year, mac_id, iclass, created) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)";
   client.query(qStr, usrArr, function(err, result){
     if (err) return cb(err)
