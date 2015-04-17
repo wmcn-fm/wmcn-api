@@ -1,5 +1,4 @@
 var sql = require('sql');
-
 var Users = {};
 
 /**
@@ -83,10 +82,10 @@ Users.updateAllUsers = function(client, updates, cb) {
 
 //  POST a new user to the table
 Users.addUser = function(client, u, cb) {
-  var usrArr = [ u.id, u.first_name, u.last_name, u.email,
+  var usrArr = [ u.id, u.first_name, u.last_name, u.phone, u.email,
                   u.hash, u.grad_year, u.mac_id, u.iclass, u.created ];
-  var qStr = "INSERT INTO users(id, first_name, last_name, email, \
-              hash, grad_year, mac_id, iclass, created) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)";
+  var qStr = "INSERT INTO users(id, first_name, last_name, phone, email, \
+              hash, grad_year, mac_id, iclass, created) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)";
   client.query(qStr, usrArr, function(err, result){
     if (err) return cb(err)
     cb(null, result)
@@ -95,13 +94,24 @@ Users.addUser = function(client, u, cb) {
 
 //  GET one user from the table by their unique ID
 Users.getUserById = function(client, user_id, cb) {
-  var qStr = "SELECT user_id, name, email FROM users WHERE user_id = $1";
+  var qStr = "SELECT * FROM users WHERE id = $1";
   client.query(qStr, [user_id], function(err, result){
-      console.log('error from within pg method:\t', err);
     if (err) {
       return cb(err);
     } else {
-      cb(null, result);
+      cb(null, result.rows);
+    }  
+  });
+}
+
+//  GET one user from the table by their email
+Users.getUserByEmail = function(client, email, cb) {
+  var qStr = "SELECT * FROM users WHERE email = $1";
+  client.query(qStr, [email], function(err, result){
+    if (err) {
+      cb(err);
+    } else {
+      cb(null, result.rows);
     }  
   });
 }
@@ -136,7 +146,7 @@ Users.updateUserById = function(client, user_id, updates, cb) {
 
 //  DELETE one user from the table by their unique ID
 Users.deleteUserById = function(client, user_id, cb) {
-  var qStr = "DELETE user_id, name, email FROM users WHERE user_id = $1";
+  var qStr = "DELETE FROM users WHERE id = $1";
   client.query(qStr, [user_id], function(err, result) {
     if (err) {
       return cb(err);
