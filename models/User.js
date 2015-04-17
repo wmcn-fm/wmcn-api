@@ -24,7 +24,7 @@ Users.getAllUsers = function(client, cb) {
 
 //  DELETE all users in the table
 Users.deleteAllUsers = function(client, cb) {
-  var query = client.query("DELETE * FROM users");
+  var query = client.query("DELETE FROM users");
 
   query.on('error', function(err) {
     cb(err);
@@ -82,10 +82,10 @@ Users.updateAllUsers = function(client, updates, cb) {
 
 //  POST a new user to the table
 Users.addUser = function(client, u, cb) {
-  var usrArr = [ u.id, u.first_name, u.last_name, u.phone, u.email,
+  var usrArr = [ u.first_name, u.last_name, u.phone, u.email,
                   u.hash, u.grad_year, u.mac_id, u.iclass, u.created ];
-  var qStr = "INSERT INTO users(id, first_name, last_name, phone, email, \
-              hash, grad_year, mac_id, iclass, created) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)";
+  var qStr = "INSERT INTO users(first_name, last_name, phone, email, \
+              hash, grad_year, mac_id, iclass, created) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)";
   client.query(qStr, usrArr, function(err, result){
     if (err) return cb(err)
     cb(null, result)

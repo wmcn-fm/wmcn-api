@@ -1,26 +1,24 @@
 var faker = require('faker');
 
 var makeRandomUser = function makeRandomUser() {
-  var fakeUser = {};
-  fakeUser.id = faker.finance.mask();
-  fakeUser.first_name = faker.name.firstName();
-  fakeUser.last_name = faker.name.lastName();
-  // fakeUser.phone = faker.phone.phoneNumber();
-  fakeUser.phone = 5039565794;
-  fakeUser.email = faker.internet.email();
-  fakeUser.hash = faker.internet.password();
-  fakeUser.grad_year = faker.random.number(2018);
-  fakeUser.mac_id = faker.random.number(999999999);
-  fakeUser.iclass = faker.random.number(99999);
-  fakeUser.created = new Date();
-  return fakeUser;
+  var user = {};
+  user.first_name = faker.name.firstName();
+  user.last_name = faker.name.lastName();
+  // user.phone = faker.phone.phoneNumber();
+  user.phone = 5039565794;
+  user.email = faker.internet.email();
+  user.hash = faker.internet.password();
+  user.grad_year = faker.random.number(2018);
+  user.mac_id = faker.random.number(999999999);
+  user.iclass = faker.random.number(99999);
+  user.created = new Date();
+  return user;
 }
 
 var makeRandomShow = function makeRandomShow() {
   var show = {};
-  show.id = faker.finance.mask();
-  show.title = faker.lorem.words();
-  show.timeslot = faker.address.streetAddress();
+  show.title = faker.lorem.words().toString();
+  show.timeslot = [faker.random.number(167)];
   show.blurb = faker.lorem.sentence();
   show.created = new Date();
 
@@ -29,7 +27,6 @@ var makeRandomShow = function makeRandomShow() {
 
 var makeRandomPlaylist = function makeRandomPlaylist() {
   var pl = {};
-  pl.id = faker.finance.mask();
   pl.content = faker.lorem.paragraph();
   pl.created = new Date();
 
@@ -38,7 +35,6 @@ var makeRandomPlaylist = function makeRandomPlaylist() {
 
 var makeRandomApp = function makeRandomApp() {
   var a = {};
-  a.id = faker.finance.mask();
   a.first_name = [];
   a.last_name = [];
   a.phone = [];

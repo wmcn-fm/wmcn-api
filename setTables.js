@@ -4,53 +4,54 @@ var db = require('./db');
 var tables = [];
 
 var users = "CREATE TABLE IF NOT EXISTS users ( \
-              id int PRIMARY KEY,\
-              first_name varchar(80),\
-              last_name varchar(80),\
-              phone bigint,\
-              email varchar(30),\
+              id serial PRIMARY KEY NOT NULL,\
+              first_name varchar(80) NOT NULL,\
+              last_name varchar(80) NOT NULL,\
+              phone bigint NOT NULL,\
+              email varchar(30) NOT NULL UNIQUE,\
               hash varchar(24),\
               grad_year int,\
               mac_id int,\
               iclass int,\
-              created date)";
+              created date NOT NULL)";
 
 var shows = "CREATE TABLE IF NOT EXISTS shows ( \
-              id int PRIMARY KEY, \
-              title varchar(80),\
-              timeslot int[],\
-              blurb varchar(160),\
-              created date)";
+              id serial NOT NULL UNIQUE, \
+              title varchar(80) NOT NULL,\
+              timeslot int[] NOT NULL,\
+              blurb varchar(160) NOT NULL,\
+              created date NOT NULL)";
 
 var playlists = "CREATE TABLE IF NOT EXISTS playlists ( \
-              id int PRIMARY KEY, \
-              content varchar(240), \
-              created date)";
+              id serial UNIQUE NOT NULL, \
+              author_id serial NOT NULL, \
+              content varchar(240) NOT NULL, \
+              created date NOT NULL)";
 
 var applications = "CREATE TABLE IF NOT EXISTS applications ( \
-                  id int PRIMARY KEY, \
-                  first_name int[], \
-                  last_name int[], \
-                  phone int[], \
-                  email varchar(30)[], \
+                  id serial UNIQUE NOT NULL, \
+                  first_name int[] NOT NULL, \
+                  last_name int[] NOT NULL, \
+                  phone int[] NOT NULL, \
+                  email varchar(30)[] NOT NULL, \
                   grad_year int[], \
                   mac_id int[], \
                   iclass int[], \
-                  created date, \
-                  title varchar(80), \
-                  timeslot int[], \
-                  blurb varchar(160), \
-                  availability int[], \
+                  created date  NOT NULL, \
+                  title varchar(80) NOT NULL, \
+                  timeslot int[] NOT NULL, \
+                  blurb varchar(160) NOT NULL, \
+                  availability int[] NOT NULL, \
                   timePref int, \
                   description varchar(160))";
 
 var hosts = "CREATE TABLE IF NOT EXISTS hosts( \
-              user_id int,\
-              show_id int)";
+              user_id serial NOT NULL,\
+              show_id serial NOT NULL)";
 
 var authors = "CREATE TABLE IF NOT EXISTS authors( \
-              show_id int,\
-              playlist_id int)";
+              show_id serial NOT NULL,\
+              playlist_id serial NOT NULL)";
 
 // var tables = [users, shows, playlists, applications, hosts, authors];
 
