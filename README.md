@@ -1,120 +1,572 @@
 # wmcn-api
-RESTful API for WMCN database
+RESTful API server for [WMCN](http://wmcn.fm)
 
-# api 0.1 documentation
+## Setup
 
-##Users
+###Install
 
-###Basic routes:
+```shell
+$ git clone https://github.com/wmcn-fm/wmcn-api.git
+$ cd wmcn-api/
+$ npm install
+```
 
-| url | method | action | url params | success | error | data params |
-|:---|:---:|:---:|:---:|:---:|
-| `/users`| GET  | return an array of all user documents | none | 200, `{users: [...]}` | 500 | none |
-| `/users` | POST | add a user to the database | none | 201, `{_id: ...}` | 403, user exists; 500; | `req.body` contains user information - name, hash, mac info, email, phone |
-| `/users` | PUT | update all users | none | 200, `'xxx users updated'` | 500 | none |
-| `/users` | DEL | delete  user collection | none | 200, `'xxx users deleted'` | 500 | `req.body` contains user information to be updated - have server check for fields to be updated? upsert? |
-| `/users/:id`| GET  | returns one user document|  `id`: user's unique mongo OID | 200, `{_id:...}` | 500, error loading user; 404, user not found | none |
-| `/users/:id`| PUT  | update one user|  `id`: user's unique mongo OID | 200, `{_id:...}` | 500, error updating; 404, user not found| `req.body` contains params  |
-| `/users:id` | DEL | delete a user | `id`: user's unique mongo OID | 200, `'user deleted'` | 500, error deleting; 404, user not found  | none |
+###Configure
+Development/production  settings are accessible at `config/settings.json`, and configured in
+`config/config.js` depending on the node environment.
 
-###Advanced routes:
+In dev mode, set up the database locally:
 
-| url | method | action | url params | success | error | data params |
-|:---|:---:|:---:|:---:|:---:|
-| `/users/active` | GET | return all currently active users (i.e., `user.hash != null`) | none | 200, `{active users: [...]}` | 500, error fetching; 404, no active users (in between semesters?) | none |
+```shell
+$ postgres /usr/local/var/postgres
+$ createdb wmcn_test	# in a new window
+$ node lib/setTables.js
+```
+
+`dropdb wmcn_test` clears the database (remember to set up the tables again too!)
+
+###Run
+
+```shell
+$ DEBUG=wmcn-api NODE_ENV=development USER=username PW=devpw npm start
+	# app runs on localhost:3001 w/ nodemon, prints full error stack, 
+	# uses local postgres instance
+
+$ sudo NODE_ENV=production USER=username PW=productionpw npm start
+	# app runs on localhost:81, using remote production db
+```
+
+## v0.1 documentation
+
+###Routes
+
+- [`/users`](#users)
+	- [`/:id`](#users-id)
+		- [`/shows`](#users-shows)
+			- [`/current`](#users-shows-current)
+		- [`/articles`](#users-articles)
+- [`/shows`](#shows)
+	- [`/:id`](#shows-id)
+		- [`/hosts`](#shows-hosts)
+		- [`/playlists`](#shows-playlists)
+- [`/playlists`](#pl)
+	- [`/:id`](#pl-id)
+	- [`?limit`](#pl-limit)
+- [`/schedule`](#schedule)
+	- [`/:timeslot`](#schedule-ts)
+	- [`/current`](#schedule-current)
+- [`/applications`](#applications)
+- [`/hosts`](#hosts)
+- [`/articles`](#articles)
+
+####Users
+##### <a name="users">`/users`</a>
+
+- **Method**: `GET`
+	- **Description**: get all users in the table
+	- **Request params**: *none*
+	- **Request body**: *none*
+	- **Response**:
+		- **Success**:
+			- **Status code**: `200`
+			- **Response body**: `{users: [...]}`
+			- **Description**: An array of user rows
+		- **Error**:
+			- **Status code**: `500`
+			- **Response body**: `{error: "..."}`
+
+- **Method**: `POST`
+	- **Description**: add one user to the table
+	- **Request params**: *none*
+	- **Request body**: `user` object containing:
+		- **required**:
+			- `first_name` (string), `last_name` (string),
+			- `phone` (string), `email` (unique string), `hash` (string [hashed pw])
+		- **optional**:
+			- `grad_year` (int), `mac_id` (int), `iclass` (int), 
+	- **Response**:
+		- **Success**: 
+			- **Status code**: `201`
+			- **Response body**: `{"result":"1 user created."}`
+		- **Error**:
+			- **Status code**: `403`
+			- **Response body**: `{error: user <email> already exists}`
+
+- **Method**: `PUT`
+	- **NOTE**: in development; see [issue #2](https://github.com/wmcn-fm/wmcn-api/issues/2)
+
+- **Method**: `DELETE`
+	- **Description**: delete all users in the database
+	- **Request params**: *none*
+	- **Request body**: *none*
+	- **Response**: 
+		- **Success**:
+			- **Status code**: `204`
+			- **Response body**: `{result: "<number> users deleted."}`
+		- **Error**:
+			- **Status code**: `500`
+			- **Response body**: `{error: "..."}`
+			- **NOTE**: improper error handling; see [issue #5](https://github.com/wmcn-fm/wmcn-api/issues/5)
+
+##### <a name="users-id">`/users/:id`</a>
+
+- **Method**: `GET`
+	- **Description**: get one user
+	- **Request params**: `id`: user id number
+	- **Request body**: *none*
+	- **Response**:
+		- **Success**: 
+			- **Status code**: `200`
+			- **Response body**: `{user: ...}`
+			- **Description**: one user row, in JSON form
+		- **Error**:
+			- **Status code**: `404`
+			- **Response body**: `{error: "user <id> doesn't exist"}`
+
+- **Method**: `PUT`
+	- **NOTE**: in development; see issue [#2](https://github.com/wmcn-fm/wmcn-api/issues/2)
+
+- **Method**: `DELETE`
+	- **Description**: delete one user
+	- **Request params**: `id`: user id number
+	- **Request body**: *none*
+	- **Response**:
+		- **Success**: 
+			- **Status code**: `204`
+			- **Response body**: `{result: "1 user deleted."}`
+		- **Error**:
+			- **Status code**: `404`
+			- **Response body**: `{error: user <id> doesn't exist}`
+			- **NOTE**: improper error handling; see [issue #5](https://github.com/wmcn-fm/wmcn-api/issues/5)
+
+##### <a name="users-shows">`/users/:id/shows`</a>
+
+- **Method**: `GET`
+	- **Description**: get all shows a given user has hosted
+	- **Request params**: `id`: user id
+	- **Request body**: *none*
+	- **Response**:
+		- **Success**: 
+			- **Status code**: `200`
+			- **Response body**: `{shows: [...]}`
+			- **Description**: JSON object `shows`, an array of show rows
+		- **Error**:
+			- **Status code**: `404`
+			- **Response body**: `{error: user <id> doesn't exist.}`
+
+##### <a name="users-shows-current">`/users/:id/shows/current`</a>
+
+- **Method**: `GET`
+	- **Description**: get current shows a user hosts
+	- **Request params**: `id`: user id
+	- **Request body**: *none*
+	- **Response**:
+		- **Success**: 
+			- **Status code**: `200`
+			- **Response body**: `{shows: [...]}`
+			- **Description**: JSON object `shows`, an array of show rows
+		- **Error**:
+			- **Status code**: `404`
+			- **Response body**: `{error: user <id> doesn't have any current shows.}`
+			- **NOTE**: improper error handling; see [issue #6](https://github.com/wmcn-fm/wmcn-api/issues/6)
+
+##### <a name="users-articles">`/users/:id/articles`</a>
+
+- **Method**: `GET`
+	- **NOTE**: in development. see [issue 7](https://github.com/wmcn-fm/wmcn-api/issues/7)
+	- **Description**: get a list of articles written by the user
 
 
- 
+####Shows
+
+##### <a name="shows">`/shows`</a>
+
+- **Method**: `GET`
+	- **Description**: get all shows in the table
+	- **Request params**: *none*
+	- **Request body**: *none*
+	- **Response**:
+		- **Success**:
+			- **Status code**: `200`
+			- **Response body**: `{shows: [...]}`
+			- **Description**: An array of show rows
+		- **Error**:
+			- **Status code**: `500`
+			- **Response body**: `{error: "..."}`
+
+- **Method**: `POST`
+	- **Description**: add one show to the table
+	- **Request params**: *none*
+	- **Request body**: `show` object containing:
+		- **required**:
+			- `title` (string), `blurb` (string), `timeslot` (int array)
+	- **Response**:
+		- **Success**: 
+			- **Status code**: `201`
+			- **Response body**: `{"result":"1 show created."}`
+		- **Error**:
+			- **Status code**: `403`
+			- **Response body**: `{error: show <title> already exists}`
+			- **NOTE**: improper error handling (doesn't check to make sure show exists) - see [issue 8](https://github.com/wmcn-fm/wmcn-api/issues/8)
+
+- **Method**: `PUT`
+	- **NOTE**: in development; see [issue #2](https://github.com/wmcn-fm/wmcn-api/issues/2)
+
+- **Method**: `DELETE`
+	- **Description**: delete all shows in the database
+	- **Request params**: *none*
+	- **Request body**: *none*
+	- **Response**: 
+		- **Success**:
+			- **Status code**: `204`
+			- **Response body**: `{result: "<number> shows deleted."}`
+		- **Error**:
+			- **Status code**: `500`
+			- **Response body**: `{error: "..."}`
+			- **NOTE**: improper error handling; see [issue #5](https://github.com/wmcn-fm/wmcn-api/issues/5)
+
+##### <a name="shows-id">`/shows/:id`</a>
+
+- **Method**: `GET`
+	- **Description**: get one show
+	- **Request params**: `id`: show id number
+	- **Request body**: *none*
+	- **Response**:
+		- **Success**: 
+			- **Status code**: `200`
+			- **Response body**: `{show: ...}`
+			- **Description**: one show row, in JSON form
+		- **Error**:
+			- **Status code**: `404`
+			- **Response body**: `{error: "show <id> doesn't exist"}`
+
+- **Method**: `PUT`
+	- **NOTE**: in development; see issue [#2](https://github.com/wmcn-fm/wmcn-api/issues/2)
+
+- **Method**: `DELETE`
+	- **Description**: delete one show
+	- **Request params**: `id`: show id number
+	- **Request body**: *none*
+	- **Response**:
+		- **Success**: 
+			- **Status code**: `204`
+			- **Response body**: `{result: "1 show deleted."}`
+		- **Error**:
+			- **Status code**: `404`
+			- **Response body**: `{error: show <id> doesn't exist}`
+			- **NOTE**: improper error handling; see [issue #5](https://github.com/wmcn-fm/wmcn-api/issues/5)
+
+##### <a name="shows-hosts">`/shows/:id/hosts`</a>
+
+- **Method**: `GET`
+- **NOTE**: in development; [see issue 9](https://github.com/wmcn-fm/wmcn-api/issues/9)
+	- **Description**: Get user documents for the show's hosts
+	- **Request params**: `id`: show id
+	- **Request body**: *None*
+	- **Response**:
+		- **Success**: 
+			- **Status code**: `200`
+			- **Response body**: `{users: [...]}`
+		- **Error**:
+			- **Status code**: `404`
+			- **Response body**: `{error: show <id> doesn't exist.}`
+			- **NOTE**: improper error handling; see [issue 6](https://github.com/wmcn-fm/wmcn-api/issues/6)
+
+##### <a name="shows-playlists">`/shows/:id/playlists`</a>
+- **Method**: `GET`
+- **NOTE**: in development; [see issue 10](https://github.com/wmcn-fm/wmcn-api/issues/10)
+	- **Description**: Get all playlists associated with a given show
+	- **Request params**: `id`: show id
+	- **Request body**: *None*
+	- **Response**:
+		- **Success**: 
+			- **Status code**: `200`
+			- **Response body**: `{playlists: [...]}`
+		- **Error**:
+			- **Status code**: `404`
+			- **Response body**: `{error: show <id> doesn't exist.}`
+			- **NOTE**: improper error handling; see [issue 6](https://github.com/wmcn-fm/wmcn-api/issues/6)
+
+
+####Playlists
+
+##### <a name="pl">`/playlists`</a>
+- **Method**: `GET`
+	- **Description**: get all playlists in the table
+	- **Request params**: *none*
+	- **Request body**: *none*
+	- **Response**:
+		- **Success**:
+			- **Status code**: `200`
+			- **Response body**: `{playlists: [...]}`
+			- **Description**: An array of playlist rows
+		- **Error**:
+			- **Status code**: `500`
+			- **Response body**: `{error: "..."}`
+
+- **Method**: `POST`
+	- **Description**: add one playlist to the table
+	- **Request params**: *none*
+	- **Request body**: `playlist` object containing:
+		- **required**:
+			- `show_id` (int, valid show ID), `content` (string)
+	- **Response**:
+		- **Success**: 
+			- **Status code**: `201`
+			- **Response body**: `{"result":"1 playlist created."}`
+		- **Error**:
+			- **Status code**: `500`
+			- **Response body**: `{error: '...''}`
+
+- **Method**: `PUT`
+	- **NOTE**: in development; see [issue #2](https://github.com/wmcn-fm/wmcn-api/issues/2)
+
+- **Method**: `DELETE`
+	- **Description**: delete all playlists in the database
+	- **Request params**: *none*
+	- **Request body**: *none*
+	- **Response**: 
+		- **Success**:
+			- **Status code**: `204`
+			- **Response body**: `{result: "<number> playlists deleted."}`
+		- **Error**:
+			- **Status code**: `500`
+			- **Response body**: `{error: "..."}`
+			- **NOTE**: improper error handling; see [issue #5](https://github.com/wmcn-fm/wmcn-api/issues/5)
+
+##### <a name="pl-id">`/playlists/:id`</a>
+
+- **Method**: `GET`
+	- **Description**: get one playlist
+	- **Request params**: `id`: playlist id number
+	- **Request body**: *none*
+	- **Response**:
+		- **Success**: 
+			- **Status code**: `200`
+			- **Response body**: `{playlist: ...}`
+			- **Description**: one playlist row, in JSON form
+		- **Error**:
+			- **Status code**: `404`
+			- **Response body**: `{error: "playlist <id> doesn't exist"}`
+
+- **Method**: `PUT`
+	- **NOTE**: in development; see issue [#2](https://github.com/wmcn-fm/wmcn-api/issues/2)
+
+- **Method**: `DELETE`
+	- **Description**: delete one playlist
+	- **Request params**: `id`: playlist id number
+	- **Request body**: *none*
+	- **Response**:
+		- **Success**: 
+			- **Status code**: `204`
+			- **Response body**: `{result: "1 playlist deleted."}`
+		- **Error**:
+			- **Status code**: `404`
+			- **Response body**: `{error: playlist <id> doesn't exist}`
+			- **NOTE**: improper error handling; see [issue #5](https://github.com/wmcn-fm/wmcn-api/issues/5)
+
+##### <a name="pl-limit">`/playlists/?limit`</a>
+- **Method**: `GET`
+	- **Description**: get a particular number of playlists
+	- **Request params**: `limit`: integer
+	- **Request body**: *none*
+	- **Response**:
+		- **Success**: 
+			- **Status code**: `200`
+			- **Response body**: `{playlists: [...]}`
+		- **Error**:
+			- **Status code**: `500`
+			- **Response body**: {error: '...'}
+
+####Schedule
+##### <a name="schedule">`/schedule`</a>
+- **NOTE**: entire route in development; see [issue #11](https://github.com/wmcn-fm/wmcn-api/issues/11)
+- **Method**: `GET`
+	- **Description**: get all current shows
+	- **Request params**: *none*
+	- **Request body**: *none*
+	- **Response**:
+		- **Success**:
+			- **Status code**: `200`
+			- **Response body**: `{shows: [...]}`
+			- **Description**: An array of show rows
+		- **Error**:
+			- **Status code**: `500`
+			- **Response body**: `{error: "..."}`
+
+- **Method**: `POST`
+	- **Description**: add one show to the schedule
+	- **Request params**: *none*
+	- **Request body**: `show` object containing:
+		- **required**:
+			- `timeslot`: int, range 0-167; `show_id`: valid show id number
+	- **Response**:
+		- **Success**: 
+			- **Status code**: `201`
+			- **Response body**: `{"result":"1 show added to the schedule."}`
+		- **Error**:
+			- **Status code**: `500`
+			- **Response body**: `{error: '...'}`
+
+- **Method**: `PUT`
+	- **NOTE**: in development; see [issue #2](https://github.com/wmcn-fm/wmcn-api/issues/2)
+
+- **Method**: `DELETE`
+	- **Description**: delete the schedule
+	- **Request params**: *none*
+	- **Request body**: *none*
+	- **Response**: 
+		- **Success**:
+			- **Status code**: `204`
+			- **Response body**: `{result: "<number> schedule relations deleted."}`
+		- **Error**:
+			- **Status code**: `500`
+			- **Response body**: `{error: "..."}`
+			- **NOTE**: improper error handling; see [issue #5](https://github.com/wmcn-fm/wmcn-api/issues/5)
+
+##### <a name="schedule-ts">`/schedule/:timeslot`</a>
+- **NOTE**: entire route in development; see [issue #11](https://github.com/wmcn-fm/wmcn-api/issues/11)
+- **Method**: `GET`
+	- **Description**: get the show at a given time
+	- **Request params**: `timeslot`: int, range 0-167
+	- **Request body**: *none*
+	- **Response**:
+		- **Success**: 
+			- **Status code**: `200`
+			- **Response body**: `{show: ...}`
+		- **Error**:
+			- **Status code**: `404`
+			- **Response body**: `{error: No show exists at hour <timeslot>}`
+
+##### <a name="schedule-current">`/schedule/:current`</a>
+- **NOTE**: entire route in development; see [issue #11](https://github.com/wmcn-fm/wmcn-api/issues/11)
+- **Method**: `GET`
+	- **Description**: get the currently playing show
+	- **Request params**: *none*
+	- **Request body**: *none*
+	- **Response**:
+		- **Success**: 
+			- **Status code**: `200`
+			- **Response body**: `{show: ...}`
+		- **Error**:
+			- **Status code**: `404`
+			- **Response body**: `{error: No show playing right now.}`
+
+
+####Applications
+##### <a name="applications">`/applications`</a>
+
+- **Method**: `GET`
+	- **Description**: get all applications in the table
+	- **Request params**: *none*
+	- **Request body**: *none*
+	- **Response**:
+		- **Success**:
+			- **Status code**: `200`
+			- **Response body**: `{applications: [...]}`
+			- **Description**: An array of application rows
+		- **Error**:
+			- **Status code**: `404`
+			- **Response body**: `{error: "no pending applications"}`
+
+- **Method**: `POST`
+	- **Description**: add one application to the table
+	- **Request params**: *none*
+	- **Request body**: `application` object containing:
+		- **required**:
+			- `first_name` (string array), `last_name` (string array),
+			- `phone` (string array), `email` (unique string array), 
+			- `title` (string), `blurb` (string), `availability` (int array), 
+		- **optional**:
+			- `grad_year` (int array), `mac_id` (int array), `iclass` (int array), 
+			- `time_pref` (int), `description` (string)
+	- **Response**:
+		- **Success**: 
+			- **Status code**: `201`
+			- **Response body**: `{"result":"1 user created."}`
+		- **Error**:
+			- **Status code**: `403`
+			- **Response body**: `{error: user <email> already exists}`
+
+- **Method**: `PUT`
+	- **NOTE**: in development; see [issue #2](https://github.com/wmcn-fm/wmcn-api/issues/2)
+
+- **Method**: `DELETE`
+	- **Description**: delete all applications in the database
+	- **Request params**: *none*
+	- **Request body**: *none*
+	- **Response**: 
+		- **Success**:
+			- **Status code**: `204`
+			- **Response body**: `{result: "<number> applications deleted."}`
+		- **Error**:
+			- **Status code**: `500`
+			- **Response body**: `{error: "..."}`
+			- **NOTE**: improper error handling; see [issue #5](https://github.com/wmcn-fm/wmcn-api/issues/5)
+
+####Hosts
+##### <a name="hosts">`/hosts`</a>
+- **NOTE**: entire route in development; see [issue #12](https://github.com/wmcn-fm/wmcn-api/issues/12)
+- **Method**: `GET`
+	- **Description**: get all user-show relationships
+	- **Request params**: *none*
+	- **Request body**: *none*
+	- **Response**:
+		- **Success**:
+			- **Status code**: `200`
+			- **Response body**: `{hosts: [...]}`
+			- **Description**: An array of host rows
+		- **Error**:
+			- **Status code**: `500`
+			- **Response body**: `{error: "..."}`
+
+- **Method**: `POST`
+	- **Description**: add one show-user relationship to the schedule
+	- **Request params**: *none*
+	- **Request body**: `rel` object containing:
+		- **required**:
+			- `user_id`: valid user id number; `show_id`: valid show id number
+	- **Response**:
+		- **Success**: 
+			- **Status code**: `201`
+			- **Response body**: `{"result":"1 relationship added to the table."}`
+		- **Error**:
+			- **Status code**: `403`
+			- **Response body**: `{error: 'User <user id> already hosts show <show_id>'}`
+			- **NOTE**: improper error handling; see [issue #13](https://github.com/wmcn-fm/wmcn-api/issues/13)
+
+- **Method**: `PUT`
+	- **NOTE**: in development; see [issue #2](https://github.com/wmcn-fm/wmcn-api/issues/2)
+
+- **Method**: `DELETE`
+	- **Description**: delete the hosts table
+	- **Request params**: *none*
+	- **Request body**: *none*
+	- **Response**: 
+		- **Success**:
+			- **Status code**: `204`
+			- **Response body**: `{result: "<number> host relations deleted."}`
+		- **Error**:
+			- **Status code**: `500`
+			- **Response body**: `{error: "..."}`
+			- **NOTE**: improper error handling; see [issue #5](https://github.com/wmcn-fm/wmcn-api/issues/5)
+
+####Articles
+##### <a name="articles">`/articles`</a>
+- **NOTE**: entire route in development; see [issue #14](https://github.com/wmcn-fm/wmcn-api/issues/14)
+
+
+## Contributors
+
+Will Kent-Daggett ([@wkentdag](https://github.com/wkentdag))
+
+Developed as an independent study with Professor Bret Jackson, spring 2015
+
+## License
+
+MIT
 
 
 
-##Shows
-
-###Basic routes:
-
-| url | method | action | url params | success | error | data params |
-|:---|:---:|:---:|:---:|:---:|
-| `/shows` | GET | return all shows | none | 200, `{shows: [...]}` | 500 | none |
-| `/shows` | POST | add a new show | none | 201, `{_id: ...}` | 500; 403, show exists | `req.body` contains show info - blurb, hosts, title, timeslot |
-| `/shows` | PUT | update all shows | none | 200, `'xxx shows updated'` | 500 | `req.body` contains fields to be updated |
-| `/shows` | DEL | delete all shows |none | 200, `'xxx shows updated'` | 500 | none |
-| `/shows/:id`| GET  | return one show |  `id`: show's unique mongo OID | 200, `{_id:...}` | 500, error loading show; 404, show not found | none |
-| `/shows/:id`| PUT  | update one show|  `id`: show's unique mongo OID | 200, `{_id:...}` | 500, error updating; 404, show not found| `req.body` contains params  |
-| `/shows/:id` | DEL | delete a show | `id`: show's unique mongo OID | 200, `'show deleted'` | 500, error deleting; 404, show not found  | none |
 
 
-###Advanced routes:
-
-| url | method | action | url params | success | error | data params |
-|:---|:---:|:---:|:---:|:---:|
-| `/shows/active` | GET | return all currently active shows (i.e., 0 <= timeslot <= 167) | none | 200, `{active shows: [...]}` | 500, error fetching; 404, no active shows (in between semesters?) | none |
-| `/shows/:id/hosts` | GET | returns the user documents associated with a given show | `id`: unique OID | 200, `{users: [...]}` | 500; 404, couldnt find users/show | none |
-
-
-
-##Playlists
-
-###Basic routes: 
-
-| url | method | action | url params | success | error | data params |
-|:---|:---:|:---:|:---:|:---:|
-| `/playlists` | GET | return all playlists | none | 200, `{playlists: [...]}` | 500 | none |
-| `/playlists` | POST | add a new playlist | none | 201, `{_id: ...}` | 500; 403, playlist exists **(how?)** | show_id, host_id, date, content |
-| `/playlists` | PUT | update all playlists | none | 200, `"xxx playlists updated"` | 500 | `req.body` contains parameters and values to be updated | 
-| `/playlists` | DEL | delete all playlists | none | 200, `"xxx playlists deleted"` | 500 | none |
-| `/playlists/:id` | GET | return one playlist | `id`: playlist's unique mongo OID | 200, `{_id:...}` | 500, error loading; 404, pl not found |none|
-| `/playlists/:id` | PUT | update one playlist | `id`: playlist's unique mongo OID | 200, `{_id:...}` | 500, error updating; 404, pl not found | content: either JSON pairs or plain string **(tbd)** - other info inaccessible|
-| `/playlists/:id` | DEL | delete one playlist | `id`: playlist's unique mongo OID | 200, `playlist deleted` | 500, error deleting; 404, pl not found | none|
-
-
-##Applications
-
-###Basic routes:
-
-| url | method | action | url params | success | error | data params |
-|:---|:---:|:---:|:---:|:---:|
-| `/applications` | GET | return all pending applications | none | 200, `{apps: [...]}` | 500 | none |
-| `/applications` | POST | add a new application | none | 201, `{_id:...}` | 500 | user subdoc, show subdoc, app subdoc; indexed by `show.title` |
-| `/applications` | PUT | update all pending applications | none | 200, `xxx applications updated` | 500 | `req.body` contains update params |
-| `/applications` | DEL | delete all pending applications | none | 200, `'xxx applications deleted'` | 500 | none |
-| `/applications/:id` | GET | return one pending applications | `id`: app's mongo OID | 200, `{_id:...}` | 500, error fetching; 404, not found | none |
-| `/applications/:id` | PUT | update a pending app | none | 200, `{_id...}` | 500, error updating; 404, not found | `req.body` contains params: **possibly only timeslot update-able? or availability?** |
-| `/applications/:id` | DEL | Delete an application | none | 200, `'app deleted'` | 500, error deleting; 404, not found | none |
-
-
-
-# WMCN.fm sitemap
-
-* `/`
-	* `/about`
-		* General station info: history, mission, hours, contact information
-		* **API interaction**: needs to pull text from files that are editable from the admin interface
-	* `/schedule`
-		* Serves a PDF of the current semesters' show schedule. Only linked to as a print option through `wmcn.fm/shows`.
-		* **API interaction**: must have an update method through the admin interface
-	* `/shows`
-		* Displays the current semester's show schedule in a calendar view by default; can switch to alphabetical
-		* **API interaction**: `GET api.wmcn.fm/v1/shows/current`
-			* fire calls to get hosts' info `onload` as well, or as ajax calls `onclick`?
-		* `/:id`
-			* Info on one specific show: blurb, hosts, active semesters, links to most recent playlists
-			* **API interaction**: `GET api.wmcn.fm/v1/shows/:id`
-		* `/now`
-			* Calculates the "timeslot" given the current time, and then calls `/shows/:id` for that hour, redirecting the user to the current show's page.
-			* **API interaction**: `GET api.wmcn.fm/v1/shows/:id`
-	* `/staff`
-		* Returns a list of all current staff. Station staff (management etc) will be listed first, followed by all DJs alphabetically. **API interaction**: `GET api.wmcn.fm/v1/users`
-		* `/:id`
-			* One specific user. Their active semesters, shows, links to most recent playlists, reviews, news. **API interaction**: `GET api.wmcn.fm/v1/users/:id`
-	* `/apply`
-		* Returns the current DJ application.
-		* **API interaction**: must display text editable via the admin interface; must be able to `POST api.wmcn.fm/v1/applications`
-	* `/archive`
-		* landing page for the archive - display search categories and date slider
-			* `?dateStart?dateEnd` - search by a particular date range
-		* `/shows`
-		* `/reviews`
-		* `/news`
-		* ^ should we even have these categories?
-	* `/charts`
-		* 
