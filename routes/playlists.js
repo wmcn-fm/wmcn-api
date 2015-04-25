@@ -1,13 +1,13 @@
 var express = require('express');
 var playlists = express.Router();
-
-//  require user methods and database connection
-var Playlists = require('../models/Playlist');
 var pg = require('pg');
-var db = require('../db-connect');
+var config = require('../config/config')();
+var db = config.db;
+var Playlists = require('../models/Playlist');
 
 //  for testing/development only:
-var makeRandomPlaylist = require('../test/utils').makeRandomPlaylist;
+var faker = require('../test/utils');
+
 
 /**	==========
 *
@@ -19,43 +19,56 @@ var makeRandomPlaylist = require('../test/utils').makeRandomPlaylist;
 playlists.get('/', function(req, res) {
   pg.connect(db, function(err, client, done) {
   	if (err) {
-  		return res.json(500, err);
+  		return res.json(500, {error: err});
   	}
 
-  	Playlists.getAllPlaylists(client, function(err, result) {
-  		done();
+  	if (!req.query.limit) {
 
-  		if (err) {
-  			return res.json(500, err);
-  		}
+  		console.log('no req.quer!\t', req.query.limit)
+	  	Playlists.getAllPlaylists(client, function(err, result) {
+	  		done();
 
-  		res.json(200, result);
-		  // res.json(200, {shows: '/returns a list of all playlists'});
+	  		if (err) {
+	  			res.json(500, {error: err});
+	  		} else {
+	  			res.json(200, {playlists: result});
+	  		}
 
-  		client.end();
-  	});	//	end Playlists.getAllPlaylists
+	  		client.end();
+	  	});	//	end Playlists.getAllPlaylists 		
+  	} else {
+
+  		console.log('req.query.limit=\t', req.query.limit);
+  		var n = req.query.limit;
+  		Playlists.getPlaylists(client, n, function(err, result) {
+  			done();
+  			res.send(result);
+
+  			client.end();
+  		});
+  	}
+  	
   });	//	end pg.connect
 });
 
 //	POST a new playlist to the table
-playlists.post('/', function(req, res) {
+playlists.post('/', function(req, res) {	
 	pg.connect(db, function(err, client, done) {
 		if (err) {
-			return res.json(500, err);
+			return res.json(500, {error: err});
 		}
 
 		// TODO: when POSTing is set up on the client, uncomment the line below instead of makeRandomPlaylist()
 		// var usrObj = req.body.user;
-		var pl = makeRandomPlaylist();
-
+		var pl = faker.makeRandomPlaylist();
 		Playlists.addPlaylist(client, pl, function(err, result) {
 			done();
 
 			if (err) {
-				return res.json(500, err);
+				return res.json(500, {error: err});
+			} else {
+				res.json(201, {result: result.rowCount + " playlist created."});
 			}
-
-			res.json(201, {"result": result.rowCount + " user created."});
 
 			client.end();
 		});	//	end pl.addPlaylist
@@ -68,18 +81,19 @@ playlists.put('/', function(req, res) {
 
 	pg.connect(db, function(err, client, done) {
 		if (err) {
-			return res.json(500, err);
+			return res.json(500, {error: err});
 		}
 
 		Playlists.updateAllPlaylists(client, updates, function(err, result) {
 			done();
 
 			if (err) {
-				return res.json(500, err);
+				res.json(500, {error: err});
 				// res.json(200, {message: '/returns number of updated playlists'});
+			} else {
+				res.json(201, {result: result});
 			}
 
-			res.json(200, result);
 			client.end();
 		});	//	end updateAllPlaylists()
 	});	//	end pg.connect
@@ -88,21 +102,20 @@ playlists.put('/', function(req, res) {
 //	DELETE all playlists in the table
 playlists.delete('/', function(req, res) {
 	pg.connect(db, function(err, client, done) {
-		done();
-
 		if (err) {
-			return res.json(500, err);
+			return res.json(500, {error: err});
 		}
 
 		Playlists.deleteAllPlaylists(client, function(err, result) {
 			done();
 
 			if (err) {
-				return res.json(500, err);
+				res.json(500, {error: err});
 				// res.json(200, {message: '/returns the id of the deleted playlist'});
+			} else {
+				res.json(200, {result: result});
 			}
 
-			res.json(200, result);
 			client.end();
 		});	//	end deleteAllPlaylists
 	});	//	end pg.connect

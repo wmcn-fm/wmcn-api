@@ -1,9 +1,12 @@
 var express = require('express');
 var shows = express.Router();
-
-var Shows = require('../models/Show');
 var pg = require('pg');
-var db = require('../db-connect');
+var config = require('../config/config')();
+var db = config.db;
+var Shows = require('../models/Show');
+var api = require('../models/api');
+
+var getCurrentTimeslot = require('../models/Show').getCurrentTimeslot;
 
 //	for testing/dev only:
 var makeRandomShow = require('../test/utils').makeRandomShow;
@@ -18,7 +21,7 @@ var makeRandomShow = require('../test/utils').makeRandomShow;
 shows.get('/', function(req, res) {
 	pg.connect(db, function(err, client, done) {
 		if (err) {
-			res.json(500, err);
+			return res.json(500, {error: err});
 		}
 
 		Shows.getAllShows(client, function(err, result) {
@@ -26,11 +29,10 @@ shows.get('/', function(req, res) {
       done();
 
       if (err) {
-        res.json(500, err);
+        res.json(500, {error: err});
+      } else {
+	      res.json(200, {shows: result});
       }
-      // console.log('success!\t', result);
-      res.json(200, result);
-      // res.json(200, {shows: '/returns a list of all current shows'});
 
       client.end();	
 		});	//	end Shows.getAllShows()
@@ -41,46 +43,42 @@ shows.get('/', function(req, res) {
 shows.post('/', function(req, res) {
 	pg.connect(db, function(err, client, done) {
 		if (err) {
-			res.json(500, err);
+			return res.json(500, {error: err});
 		}
 
-		// TODO: when POSTing is set up on the client, uncomment the line below instead of makeRandomUser()
-    // var newShow = req.body.show;
-    var newShow = makeRandomShow();
-
-    Shows.addShow(client, newShow, function(err, result) {
+		// TODO: when POSTing is set up on the client, uncomment the line below instead of makeRandomShow()
+    // var show = req.body.show;
+    var show = makeRandomShow();
+    Shows.addShow(client, show, function(err, result) {
       done();
 
       if (err) {
-        res.json(500, err);
+        res.json(500, {error: err});
+      } else {
+ 	      res.json(201, {result: result.rowCount + " show created."});   	
       }
-
-      // console.log('success!\t', result);
-      res.json(201, result);
-    	// res.json(201, {show: '/returns the newly created show document'});
 
       client.end();
     });   //  end Shows.addShow
 	});	//	end pg.connect
 });
 
+//	FIX ME: test this route
 //	PUT an update to all shows in the table
 shows.put('/', function(req, res) {
-	var updates = req.body.updates;
-
 	pg.connect(db, function(err, client, done) {
 		if (err) {
-			res.json(500, err);
+			res.json(500, {error: err});
 		}
 
+		var updates = req.body.updates;
 		Shows.updateAllShows(client, updates, function(err, result) {
 			done();
 
 			if (err) {
-				res.json(500, err);
+				res.json(500, {error: err});
 			} else {
-				res.json(200, result.length);
-				// res.json(200, {message: '/returns number of updated shows'});
+				res.json(200, {result: "updated " + result.length + " shows"});
 			}
 
 			client.end();
@@ -91,25 +89,24 @@ shows.put('/', function(req, res) {
 //	DELETE all shows in the table
 shows.delete('/', function(req, res) {
 	pg.connect(db, function(err, client, done) {
-    
     if (err) {
-      res.json(500, err);
+      return res.json(500, {error: err});
     }
 
     Shows.deleteAllShows(client, function(err, result) {
       done();
 
       if (err) {
-        res.json(500, err);
+        res.json(500, {error: err});
       } else {
-        res.json(200, result.length);
-      	// res.json(200, {message: '/returns the id of the deleted show'});
+        res.json(204, {result: "deleted " + result.rowCount + " shows"});
       }
 
       client.end();
     });  // end Shows.delete
   }); //  end pg.connect
 });
+
 
 /** ==========
 *
@@ -119,37 +116,38 @@ shows.delete('/', function(req, res) {
 
 //	GET one show in the table by its ID
 shows.get('/:id', function(req, res) {
-	var show_id = req.params.id;
-
   pg.connect(db, function(err, client, done) {
     if (err) {
-      res.json(500, err);
+      return res.json(500, {error: err});
     }
 
+  	var show_id = req.params.id;
     Shows.getShowById(client, show_id, function(err, result) {
       done();
 
-      if (err) {
-        res.json(500, err);
+      if (!err && result.length > 0) {
+        res.json(200, {show: result[0]});
+      } else if (result.length === 0) {
+      	res.json(404, {error: "show " + show_id + " doesn't exist"});
+      } else {
+      	res.json(500, {error: err});
       }
 
-      res.json(200, result);
-      // res.json(200, {user: '/returns ' + id + ' s show document'});
       client.end();
     });
   });
 });
 
+//	FIX ME:  test this route
 //	PUT an update to one show in the table
 shows.put('/:id', function(req, res) {
-	var show_id = req.params.id;
-  var updates = req.body.updates;
-
   pg.connect(db, function(err, client, done) {
     if (err) {
-      res.json(500, err);
+      return res.json(500, {error: err});
     }
 
+  	var show_id = req.params.id;
+	  var updates = req.body.updates;
     Shows.updateShowById(client, show_id, updates, function(err, result) {
       done();
 
@@ -167,26 +165,35 @@ shows.put('/:id', function(req, res) {
 });
 
 shows.delete('/:id', function(req, res) {
-	var show_id = req.params.id;
+	pg.connect(db, function(err, client, done) {
+		if (err) {
+			return res.json(500, {error: err});
+		}
 
-  pg.connect(db, function(err, client, done) {
-    if (err) {
-      res.json(500, err);
-    }
+		var show_id = req.params.id;
+		api.get('/shows/' + show_id, function(err, result, statusCode) {
+			if (err) {
+				return res.json(500, {error: err});
+			} else if (!err && result && statusCode === 200) {
+				Shows.deleteShowById(client, show_id, function(err, result) {
+					done();
 
-    Shows.deleteShowById(client, show_id, function(err, result) {
-      done();
+					if (err) {
+						res.json(500, {error: err});
+					} else {
 
-      if (err) {
-        res.json(500, err);
-      } else {
-        res.json(200, result);
-      	// res.json(200, {message: '/returns the id of the deleted show: ' + id});
-      }
+						//	FIX ME: why does the message not send even when the status code does
+						//					and the action is completed?
+						res.json(204, {message: "deleted show " + show_id});
+					}
 
-      client.end();
-    });
-  });
+					client.end();
+				});	//	end Users.delete
+			} else {
+				return res.json(statusCode, result);
+			}
+		});	//end api.get
+	});	//	end pg.connect
 });
 
 /** ==========
@@ -197,20 +204,19 @@ shows.delete('/:id', function(req, res) {
 
 //	GET a list of currently active shows
 //	(i.e, 0 <= shows.timeslot <= 167)
-shows.get('/current', function(req, res) {
+shows.get('/c/current', function(req, res) {
 	pg.connect(db, function(err, client, done) {
 		if (err) {
-			res.json(500, err);
+			return res.json(500, {error: err});
 		}
 
 		Shows.getActiveShows(client, function(err, result) {
 			done();
 
 			if (err) {
-				res.json(500, err);
+				res.json(500, {error: err});
 			} else {
-				res.json(200, result);
-				// res.json(200, {message: '/returns a list of all active shows'});
+				res.json(200, {active_shows: result});
 			}
 
 			client.end();
@@ -219,13 +225,13 @@ shows.get('/current', function(req, res) {
 });
 
 //	GET the show currently playing at the time of the request
-shows.get('/now', function(req, res) {
+shows.get('/n/now', function(req, res) {
 	pg.connect(db, function(err, client, done) {
 		if (err) {
 			res.json(500, err);
 		}
 
-		var timeslot = shows.getCurrentTimeslot();
+		var timeslot = getCurrentTimeslot();
 		Shows.getShowByTimeslot(client, timeslot, function(err, result) {
 			done();
 
@@ -263,11 +269,9 @@ shows.get('/t/:timeslot', function(req, res) {
 
 //	GET a show's hosts' user objects
 shows.get('/:id/hosts', function(req, res) {
-	var show_id = req.params.id;
-
 	pg.connect(db, function(err, client, done) {
 		if (err) {
-			res.json(500, err);
+			res.json(500, {error:err});
 		}
 
 		Shows.getHosts(client, show_id, function(err, result) {

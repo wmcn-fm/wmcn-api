@@ -1,10 +1,25 @@
 #!/usr/bin/env node
-var debug = require('debug')('wmcn');
+var debug = require('debug')('wmcn-api');
 var app = require('../app');
 
-app.set('port', process.env.PORT || 3000);
+var settings = require('../config/settings.json');
+var node_env = process.env.NODE_ENV;
+var port;
 
+//  debugging only:
+var confjs = require('../config/config');
+var env_variables = confjs();
+
+if (node_env !== 'production') {
+  port = settings.api.port.dev;
+} else {
+  port = settings.api.port.production;
+}
+
+app.set('port', port);
 var server = app.listen(app.get('port'), function() {
-  // debug('Express server listening on port ' + server.address().port);
-  console.log('Express server listening on port ' + server.address().port);
+  debug('Express server listening on port ' + server.address().port + ' in ' + node_env + ' mode');
+  console.log('Environment variables:\n', env_variables);
 });
+
+

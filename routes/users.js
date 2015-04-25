@@ -1,12 +1,13 @@
 var express = require('express');
 var users = express.Router();
 var pg = require('pg');
-var db = require('../db');
+var config = require('../config/config')();
+var db = config.db;
 var Users = require('../models/User');
 var api = require('../models/api');
 
 //  for testing/development only:
-var makeRandomUser = require('../test/utils').makeRandomUser;
+var faker = require('../test/utils');
 
 
 /**	==========
@@ -46,7 +47,7 @@ users.post('/', function(req, res) {
 
 		// TODO: when POSTing is set up on the client, uncomment the line below instead of makeRandomUser()
 		// var user = req.body.user;
-		var user = makeRandomUser();
+		var user = faker.makeRandomUser();
 		api.get('/users/e/' + user.email, function(err, result, statusCode) {
 			if (err) {
 				return res.json(500, {error: err});
@@ -233,7 +234,7 @@ users.delete('/:id', function(req, res) {
 				return res.json(statusCode, result);
 			}
 		});	//end api.get
-	});
+	});	//	end pg.connect
 });
 
 
