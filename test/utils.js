@@ -33,7 +33,7 @@ fake.makeRandomShow = function makeRandomShow() {
 
 fake.makeRandomPlaylist = function makeRandomPlaylist() {
   var pl = {};
-  pl.author_id = faker.random.number(100);
+  pl.author_id = -1;
   pl.content = '';
 
   for (var i=0; i<getRandomInt(2, 8); i++) {

@@ -4,6 +4,7 @@ var pg = require('pg');
 var config = require('../config/config')();
 var db = config.db;
 var Playlists = require('../models/Playlist');
+var api = require('../models/api');
 
 //  for testing/development only:
 var faker = require('../test/utils');
@@ -58,20 +59,36 @@ playlists.post('/', function(req, res) {
 			return res.json(500, {error: err});
 		}
 
-		// TODO: when POSTing is set up on the client, uncomment the line below instead of makeRandomPlaylist()
-		// var usrObj = req.body.user;
-		var pl = faker.makeRandomPlaylist();
-		Playlists.addPlaylist(client, pl, function(err, result) {
-			done();
+		var pl;
+		if (process.env.NODE_ENV !== 'development') {
+			pl = req.body.playlist;
+		} else {
+			pl = faker.makeRandomPlaylist();
+			api.get('/users/', function(err, result, statusCode) {
+				if (!err && result && statusCode === 200) {
+					var ids = [];
+					for (var i in result.users) {
+						ids.push(result.users[i].id);
+					}
+					console.log('pl before setting:\t', pl);
+					pl.author_id = ids[Math.floor(Math.random()*ids.length)];
+					console.log('author_id after setting, inside loop:\t', pl.author_id);
 
-			if (err) {
-				return res.json(500, {error: err});
-			} else {
-				res.json(201, {result: result.rowCount + " playlist created."});
-			}
+					Playlists.addPlaylist(client, pl, function(err, result) {
+						done();
 
-			client.end();
-		});	//	end pl.addPlaylist
+						if (err) {
+							return res.json(500, {error: err});
+						} else {
+							res.json(201, {result: result.rowCount + " playlist created."});
+						}
+
+						client.end();
+					});	//	end pl.addPlaylist
+				}
+			});	//	end api.get
+		}
+		
 	});	//	end pg.connect
 });
 
