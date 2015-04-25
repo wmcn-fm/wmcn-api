@@ -59,7 +59,7 @@ Show.updateAllShows = function(client, updates, cb) {
 
 //	DELETE all shows in the table
 Show.deleteAllShows = function(client, cb) {
-	var query = client.query("DELETE * FROM shows");
+	var query = client.query("DELETE FROM shows");
 
   query.on('error', function(err) {
     cb(err);
@@ -70,7 +70,7 @@ Show.deleteAllShows = function(client, cb) {
   });
 
   query.on('end', function(result) {
-    cb(null, result.rows);
+    cb(null, result);
   });
 }
 
@@ -82,11 +82,11 @@ Show.deleteAllShows = function(client, cb) {
 
 //	INSERT a new show to the table
 //	@param "show": JSON object containing fields:
-//		id: int, title: string, timeslot: int, blurb: string, created: date
+//		title: string, timeslot: int, blurb: string, created: date
 Show.addShow = function (client, show, cb) {
-	var showArr = [ show.id, show.title, show.timeslot, show.blurb, show.created];
-	var qStr = "INSERT INTO shows(id, title, timeslot, blurb, created) \
-							VALUES($1, $2, $3, $4, $5)";
+	var showArr = [ show.title, show.timeslot, show.blurb, ];
+	var qStr = "INSERT INTO shows(title, timeslot, blurb) \
+							VALUES($1, $2, $3)";
 	client.query(qStr, showArr, function(err, result) {
 		if (err) {
 			return cb(err);
@@ -97,18 +97,17 @@ Show.addShow = function (client, show, cb) {
 }
 
 Show.getShowById = function(client, show_id, cb) {
-	var qStr = "SELECT id, title, timeslot, blurb, created FROM shows WHERE show_id = $1";
+	var qStr = "SELECT * FROM shows WHERE id = $1";
 	client.query(qStr, [show_id], function(err, result) {
 		if (err) {
 			return cb(err);
 		} else {
-			cb(null, result);
+			cb(null, result.rows);
 		}
 	});
 }
 
 //	TODO: add this method
-
 //	UPDATE one show from the table by its id
 Show.updateShowById = function(client, show_id, updates, cb) {
 
@@ -116,7 +115,7 @@ Show.updateShowById = function(client, show_id, updates, cb) {
 
 //	DELETE one show from the table by its id
 Show.deleteShowById = function(client, show_id, cb) {
-	var qStr = "DELETE id, title, timeslot, blurb, created FROM shows WHERE show_id = $1";
+	var qStr = "DELETE FROM shows WHERE id = $1";
 	client.query(qStr, [show_id], function(err, result) {
 		if (err) {
 			return cb(err);
@@ -138,8 +137,8 @@ Show.getActiveShows = function(client, cb) {
 
 	//	FIX ME: query currently calls only shows where show.timeslot === 167
 	//	see: http://stackoverflow.com/questions/16606357/if-array-contains-value 
-	var qStr = "SELECT id, title, timeslot, blurb, created \
-							FROM shows WHERE timeslot @> ARRAY[167]";
+	var qStr = "SELECT * FROM shows \
+				WHERE timeslot && array(SELECT generate_series(0, 167))";
 	var query = client.query(qStr);
 
 	query.on('error', function(err) {
@@ -200,7 +199,7 @@ var getCurrentTimeslot = function getCurrentTimeslot() {
 	var hour = d.getHours();
 	var timeslot = day + (hour * day);
 
-	return timeslot
+	return timeslot;
 }
 
 ///////////////////////

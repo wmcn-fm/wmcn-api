@@ -86,16 +86,16 @@ Apps.updateAllApps = function(client, updates, cb) {
 //      id: int, first_name: string[], last_name: string[],
 //      email: string[], grad_year: int[], mac_id: int[],
 //      iclass: int[], created: date, title: string, timeslot: int,
-//      blurb: string, availability: int[], timePref: int, description: string 
+//      blurb: string, availability: int[], time_pref: int, description: string 
 Apps.addApp = function(client, a, cb) {
-  var appArr = [ a.id, a.first_name, a.last_name, a.email,
-                  a.grad_year, a.mac_id, a.iclass, a.created,
-                  a.title, a.timeslot, a.blurb, a.availability,
-                  a.timePref, a.description ];
-  var qStr = "INSERT INTO applications(id, first_name, last_name, email, \
-              grad_year, mac_id, iclass, created, title, timeslot, blurb, \
-              availability, timePref, description) VALUES($1, $2, $3, $4, $5, \
-               $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)";
+  var appArr = [ a.first_name, a.last_name, a.phone, a.email,
+                  a.grad_year, a.mac_id, a.iclass,
+                  a.title, a.blurb, a.availability,
+                  a.time_pref, a.description ];
+  var qStr = "INSERT INTO applications(first_name, last_name, phone, email, \
+              grad_year, mac_id, iclass, title, blurb, \
+              availability, time_pref, description) VALUES($1, $2, $3, $4, $5, \
+               $6, $7, $8, $9, $10, $11, $12)";
   client.query(qStr, appArr, function(err, result){
     if (err) return cb(err)
     cb(null, result)

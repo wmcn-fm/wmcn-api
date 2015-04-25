@@ -74,6 +74,18 @@ Playlist.deleteAllPlaylists = function(client, cb) {
   });
 }
 
+Playlist.getPlaylists = function(client, n, cb) {
+  var query = client.query("SELECT * FROM playlists LIMIT $1");
+  var limit = [n];
+  client.query(query, limit, function(err, result) {
+    if (err) {
+      return cb(err);
+    } else {
+      cb(null, result.rows);
+    }
+  });
+}
+
 /**
 	*
 	*	Single playlist methods
@@ -84,9 +96,9 @@ Playlist.deleteAllPlaylists = function(client, cb) {
 //	@param "pl": JSON object containing fields:
 //		id: int, content: string, created: date
 Playlist.addPlaylist = function (client, pl, cb) {
-	var plArr = [ pl.id, pl.content, pl.created];
-	var qStr = "INSERT INTO playlists(id, content, created) \
-							VALUES($1, $2, $3)";
+	var plArr = [ pl.author_id, pl.content];
+	var qStr = "INSERT INTO playlists(author_id, content) \
+							VALUES($1, $2)";
 	client.query(qStr, plArr, function(err, result) {
 		if (err) {
 			return cb(err);

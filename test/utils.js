@@ -1,39 +1,49 @@
 var faker = require('faker');
+var fake = {};
 
-var makeRandomUser = function makeRandomUser() {
+fake.makeRandomUser = function makeRandomUser() {
   var user = {};
   user.first_name = faker.name.firstName();
   user.last_name = faker.name.lastName();
-  // user.phone = faker.phone.phoneNumber();
-  user.phone = 5039565794;
+  user.phone = getRandomInt(100000000000000, 999999999999999).toString();
   user.email = faker.internet.email();
   user.hash = faker.internet.password();
-  user.grad_year = faker.random.number(2018);
-  user.mac_id = faker.random.number(999999999);
-  user.iclass = faker.random.number(99999);
-  user.created = new Date();
+  user.grad_year = getRandomInt(1950, 2018);
+  user.mac_id = getRandomInt(100000000, 999999999);
+  user.iclass = getRandomInt(10000, 99999);
   return user;
 }
 
-var makeRandomShow = function makeRandomShow() {
+fake.makeRandomShow = function makeRandomShow() {
+
   var show = {};
   show.title = faker.lorem.words().toString();
-  show.timeslot = [faker.random.number(167)];
-  show.blurb = faker.lorem.sentence();
-  show.created = new Date();
+  show.timeslot = [];
+  show.blurb = '';
+
+  for (var i=0; i<getRandomInt(1, 8); i++) {
+    show.timeslot.push(getRandomInt(0, 167))
+  }
+  for (var i=0; i<getRandomInt(2, 8); i++) {
+    show.blurb += faker.lorem.sentence();
+  }
 
   return show;
 }
 
-var makeRandomPlaylist = function makeRandomPlaylist() {
+fake.makeRandomPlaylist = function makeRandomPlaylist() {
   var pl = {};
-  pl.content = faker.lorem.paragraph();
-  pl.created = new Date();
+  pl.author_id = faker.random.number(100);
+  pl.content = '';
+
+  for (var i=0; i<getRandomInt(2, 8); i++) {
+    pl.content += faker.lorem.paragraph();
+  }
 
   return pl;
 }
 
-var makeRandomApp = function makeRandomApp() {
+fake.makeRandomApp = function makeRandomApp() {
   var a = {};
   a.first_name = [];
   a.last_name = [];
@@ -42,30 +52,31 @@ var makeRandomApp = function makeRandomApp() {
   a.grad_year = [];
   a.mac_id = [];
   a.iclass = [];
-  a.created = new Date();
   a.title = faker.lorem.words().toString();
-  a.timeslot = faker.random.number(167);
   a.blurb = faker.lorem.sentence();
-  a.availability = [1, 2, 3, 4, 5, 101, 23, 45, 56, 89];
-  a.timePref = 1;
+  a.availability = [];
+  a.time_pref = 1;
   a.description = faker.lorem.sentences();
 
-  for (var i=0; i<6; i++) {
+  for (var i=0; i<getRandomInt(2, 30); i++) {
+    a.availability.push(getRandomInt(0, 167));
+  }
+
+  for (var i=0; i<getRandomInt(1, 4); i++) {
     a.first_name.push(faker.name.firstName() );
     a.last_name.push(faker.name.lastName() );
-    a.phone.push(faker.phone.phoneNumber() );
+    a.phone.push(getRandomInt(100000000000000, 999999999999999).toString());
     a.email.push(faker.internet.email() );
-    a.grad_year.push(faker.random.number(2018) );
-    a.mac_id.push(faker.random.number(999999999) );
-    a.iclass.push(faker.random.number(99999) );
-
-    i++;
+    a.grad_year.push(getRandomInt(1950, 2018));
+    a.mac_id.push(getRandomInt(100000000, 999999999) );
+    a.iclass.push(getRandomInt(10000, 99999));
   }
 
   return a;
 }
 
-module.exports.makeRandomUser = makeRandomUser;
-module.exports.makeRandomShow = makeRandomShow;
-module.exports.makeRandomPlaylist = makeRandomPlaylist;
-module.exports.makeRandomApp = makeRandomApp;
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+module.exports = fake;
