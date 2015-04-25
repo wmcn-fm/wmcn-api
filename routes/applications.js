@@ -6,7 +6,7 @@ var db = config.db;
 var Applications = require('../models/Application');
 
 //  for testing/development only:
-var faker = require('../test/utils');
+var faker = require('../test/fake');
 
 
 /**	==========

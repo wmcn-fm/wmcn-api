@@ -7,7 +7,7 @@ var Playlists = require('../models/Playlist');
 var api = require('../models/api');
 
 //  for testing/development only:
-var faker = require('../test/utils');
+var faker = require('../test/fake');
 
 
 /**	==========
