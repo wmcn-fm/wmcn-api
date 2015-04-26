@@ -8,6 +8,7 @@ var api = require('../models/api');
 
 //  for testing/development only:
 var faker = require('../test/fake');
+var utils = require('../test/utils');
 
 
 /**	==========
@@ -52,6 +53,9 @@ playlists.get('/', function(req, res) {
   });	//	end pg.connect
 });
 
+//	TODO: refactor fake data generator, or 
+//				at delete this whole if/else loop for production
+
 //	POST a new playlist to the table
 playlists.post('/', function(req, res) {	
 	pg.connect(db, function(err, client, done) {
@@ -64,31 +68,21 @@ playlists.post('/', function(req, res) {
 			pl = req.body.playlist;
 		} else {
 			pl = faker.makeRandomPlaylist();
-			api.get('/users/', function(err, result, statusCode) {
-				if (!err && result && statusCode === 200) {
-					var ids = [];
-					for (var i in result.users) {
-						ids.push(result.users[i].id);
+			utils.getValid('shows', function(err, random_id) {
+				pl.show_id = random_id;
+				Playlists.addPlaylist(client, pl, function(err, result) {
+					done();
+
+					if (err) {
+						return res.json(500, {error: err});
+					} else {
+						res.json(201, {result: result.rowCount + " playlist created."});
 					}
-					console.log('pl before setting:\t', pl);
-					pl.author_id = ids[Math.floor(Math.random()*ids.length)];
-					console.log('author_id after setting, inside loop:\t', pl.author_id);
 
-					Playlists.addPlaylist(client, pl, function(err, result) {
-						done();
-
-						if (err) {
-							return res.json(500, {error: err});
-						} else {
-							res.json(201, {result: result.rowCount + " playlist created."});
-						}
-
-						client.end();
-					});	//	end pl.addPlaylist
-				}
-			});	//	end api.get
+					client.end();
+				});	//	end pl.addPlaylist
+			});
 		}
-		
 	});	//	end pg.connect
 });
 

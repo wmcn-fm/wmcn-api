@@ -96,8 +96,8 @@ Playlist.getPlaylists = function(client, n, cb) {
 //	@param "pl": JSON object containing fields:
 //		id: int, content: string, created: date
 Playlist.addPlaylist = function (client, pl, cb) {
-	var plArr = [ pl.author_id, pl.content];
-	var qStr = "INSERT INTO playlists(author_id, content) \
+	var plArr = [ pl.show_id, pl.content];
+	var qStr = "INSERT INTO playlists(show_id, content) \
 							VALUES($1, $2)";
 	client.query(qStr, plArr, function(err, result) {
 		if (err) {

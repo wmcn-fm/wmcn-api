@@ -33,8 +33,8 @@ fake.makeRandomShow = function makeRandomShow() {
 
 fake.makeRandomPlaylist = function makeRandomPlaylist() {
   var pl = {};
-  pl.author_id = -1;
   pl.content = '';
+  pl.show_id = null;
 
   for (var i=0; i<getRandomInt(2, 8); i++) {
     pl.content += faker.lorem.paragraph();
