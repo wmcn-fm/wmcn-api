@@ -421,7 +421,6 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 			- **NOTE**: improper error handling; see [issue #5](https://github.com/wmcn-fm/wmcn-api/issues/5)
 
 ##### <a name="schedule-ts">`/schedule/:timeslot`</a>
-- **NOTE**: entire route in development; see [issue #11](https://github.com/wmcn-fm/wmcn-api/issues/11)
 - **Method**: `GET`
 	- **Description**: get the show at a given time
 	- **Request params**: `timeslot`: int, range 0-167
