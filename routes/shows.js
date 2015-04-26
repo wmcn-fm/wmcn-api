@@ -48,7 +48,7 @@ shows.post('/', function(req, res) {
 
 		// TODO: when POSTing is set up on the client, uncomment the line below instead of makeRandomShow()
     // var show = req.body.show;
-    var show = fake.makeRandomShow();
+    var show = faker.makeRandomShow();
     Shows.addShow(client, show, function(err, result) {
       done();
 

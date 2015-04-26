@@ -17,7 +17,7 @@ Development/production  settings are accessible at `config/settings.json`, and c
 
 In dev mode, set up the database locally:
 
-```shell
+```
 $ postgres /usr/local/var/postgres
 $ createdb wmcn_test	# in a new window
 $ node lib/setTables.js
@@ -27,7 +27,7 @@ $ node lib/setTables.js
 
 ###Run
 
-```shell
+```
 $ DEBUG=wmcn-api NODE_ENV=development USER=username PW=devpw npm start
 	# app runs on localhost:3001 w/ nodemon, prints full error stack, 
 	# uses local postgres instance
@@ -380,7 +380,6 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 
 ####Schedule
 ##### <a name="schedule">`/schedule`</a>
-- **NOTE**: entire route in development; see [issue #11](https://github.com/wmcn-fm/wmcn-api/issues/11)
 - **Method**: `GET`
 	- **Description**: get all current shows
 	- **Request params**: *none*
@@ -407,9 +406,6 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 		- **Error**:
 			- **Status code**: `500`
 			- **Response body**: `{error: '...'}`
-
-- **Method**: `PUT`
-	- **NOTE**: in development; see [issue #2](https://github.com/wmcn-fm/wmcn-api/issues/2)
 
 - **Method**: `DELETE`
 	- **Description**: delete the schedule
@@ -438,8 +434,20 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 			- **Status code**: `404`
 			- **Response body**: `{error: No show exists at hour <timeslot>}`
 
+- **Method**: `DELETE`
+	- **Description**: delete the relationship between a show and a timeslot
+	- **Request params**: `timeslot`: int, range 0-167
+	- **Request body**: *none*
+	- **Response**:
+		- **Success**: 
+			- **Status code**: `200`
+			- **Response body**: `{"result": "cleared spot <timeslot>"}`
+		- **Error**:
+			- **Status code**: `404`
+			- **Response body**: `{error: No show exists at hour <timeslot>}`
+
 ##### <a name="schedule-current">`/schedule/:current`</a>
-- **NOTE**: entire route in development; see [issue #11](https://github.com/wmcn-fm/wmcn-api/issues/11)
+- **NOTE**: in development; see [issue #16](https://github.com/wmcn-fm/wmcn-api/issues/16)
 - **Method**: `GET`
 	- **Description**: get the currently playing show
 	- **Request params**: *none*

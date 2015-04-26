@@ -31,6 +31,14 @@ fake.makeRandomShow = function makeRandomShow() {
   return show;
 }
 
+fake.makeRandomScheduleRow = function makeRandomScheduleRow() {
+  var rel = {};
+  rel.timeslot = getRandomInt(0, 167);
+  rel.show_id = null;
+
+  return rel;
+}
+
 fake.makeRandomPlaylist = function makeRandomPlaylist() {
   var pl = {};
   pl.content = '';
