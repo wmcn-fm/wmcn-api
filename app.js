@@ -5,10 +5,10 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
-var index = require('./routes/index');
 var users = require('./routes/users');
 var shows = require('./routes/shows');
 var playlists = require('./routes/playlists');
+var schedule = require('./routes/schedule');
 var applications = require('./routes/applications');
 
 var app = express();
@@ -24,10 +24,14 @@ app.use(bodyParser.urlencoded());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', index);
+app.get('/', function(req, res) {
+  res.json(200, 'welcome to wmcn api');
+});
+
 app.use('/users', users);
 app.use('/shows', shows);
 app.use('/playlists', playlists);
+app.use('/schedule', schedule);
 app.use('/applications', applications);
 
 /// catch 404 and forward to error handler
