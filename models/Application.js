@@ -8,7 +8,7 @@ var Apps = {};
 
 //  SELECT all apps in the table
 Apps.getAllApps = function(client, cb) {
-  var query = client.query("SELECT * FROM applications");
+  var query = client.query("SELECT * FROM applications ORDER BY created DESC");
   
   query.on('error', function(err) {
     cb(err)
@@ -25,7 +25,7 @@ Apps.getAllApps = function(client, cb) {
 
 //  DELETE all apps in the table
 Apps.deleteAllApps = function(client, cb) {
-  var query = client.query("DELETE * FROM applications");
+  var query = client.query("DELETE FROM applications");
 
   query.on('error', function(err) {
     cb(err);
@@ -36,7 +36,7 @@ Apps.deleteAllApps = function(client, cb) {
   });
 
   query.on('end', function(result) {
-    cb(null, result.rows);
+    cb(null, result.rowCount);
   });
 }
 
@@ -105,10 +105,7 @@ Apps.addApp = function(client, a, cb) {
 //  SELECT one app from the table by their id
 //  @param "app_id": application's unique id
 Apps.getAppById = function(client, app_id, cb) {
-  var qStr = "SELECT id, first_name, last_name, email, \
-              grad_year, mac_id, iclass, created, title, timeslot, blurb, \
-              availability, timePref, description \
-              FROM applications WHERE id = $1";
+  var qStr = "SELECT * FROM applications WHERE id = $1";
   client.query(qStr, [app_id], function(err, result){
     if (err) {
       return cb(err);
@@ -126,12 +123,12 @@ Apps.updateAppById = function(client, app_id, updates, cb) {
 
 //  DELETE one user from the table by their unique ID
 Apps.deleteAppById = function(client, app_id, cb) {
-  var qStr = "DELETE FROM applications WHERE app_id = $1";
+  var qStr = "DELETE FROM applications WHERE id = $1";
   client.query(qStr, [app_id], function(err, result) {
     if (err) {
       return cb(err);
     } else {
-      cb(null, result);
+      cb(null, result.rowCount);
     }
   });
 }

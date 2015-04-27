@@ -9,162 +9,152 @@ var Applications = require('../models/Application');
 var faker = require('../test/fake');
 
 
-/**	==========
-*
-*	/applications
-*
-*/
+applications.route('/')
 
-//	GET all current applications in the table
-applications.get('/', function(req, res) {
-	pg.connect(db, function(err, client, done) {
-  	if (err) {
-  		return res.json(500, {error: err});
-  	}
+	//	GET all current applications in the table
+	.get(function(req, res) {
+		pg.connect(db, function(err, client, done) {
+	  	if (err) {
+	  		return res.json(500, {error: err});
+	  	}
 
-  	Applications.getAllApps(client, function(err, result) {
-  		done();
+	  	Applications.getAllApps(client, function(err, result) {
+	  		done();
 
-  		if (err) {
-  			return res.json(500, {error: err});
-  		} else {
-			res.json(200, {applications: result});
-		  // res.json(200, {shows: '/returns a list of all Applications'});
-  		}
+	  		if (err) {
+	  			return res.json(500, {error: err.detail});
+	  		} else {
+				res.json(200, {applications: result});
+			  // res.json(200, {shows: '/returns a list of all Applications'});
+	  		}
 
-  		client.end();
-  	});	//	end Applications.getAllApps
-  });	//	end pg.connect
-});
+	  		client.end();
+	  	});	//	end Applications.getAllApps
+	  });	//	end pg.connect
+	})
 
-//	POST a new application to the table
-applications.post('/', function(req, res) {
-	pg.connect(db, function(err, client, done) {
-		if (err) {
-			return res.json(500, err);
-		}
-
-		// TODO: when POSTing is set up on the client, uncomment the line below instead of makeRandomApp()
-		// var app = req.body.application;
-		var app = faker.makeRandomApp();
-		console.log(app);
-		Applications.addApp(client, app, function(err, result) {
-			done();
-
+	//	POST a new application to the table
+	.post(function(req, res) {
+		pg.connect(db, function(err, client, done) {
 			if (err) {
-				res.json(500, err);
-			} else {
-				res.json(201, {"result": result.rowCount + " application created."});	
+				return res.json(500, err);
 			}
 
-			client.end();
-		});	//	end app.add
-	});	//	end pg.connect
-});
+			// TODO: when POSTing is set up on the client, uncomment the line below instead of makeRandomApp()
+			// var app = req.body.application;
+			var app = faker.makeRandomApp();
+			console.log(app);
+			Applications.addApp(client, app, function(err, result) {
+				done();
 
-//	PUT an update to all applications in the table
-applications.put('/', function(req, res) {
-	pg.connect(db, function(err, client, done) {
-		if (err) {
-			return res.json(500, {error: err});
-		}
+				if (err) {
+					res.json(500, {error: err.detail});
+				} else {
+					res.json(201, {"result": result.rowCount + " application created."});	
+				}
 
-		var updates = req.body.updates;
-		Applications.updateAllApps(client, updates, function(err, result) {
-			done();
+				client.end();
+			});	//	end app.add
+		});	//	end pg.connect
+	})
 
+	//	PUT an update to all applications in the table
+	.put(function(req, res) {
+		res.json(500, {error: 'not configured'});
+		// pg.connect(db, function(err, client, done) {
+		// 	if (err) {
+		// 		return res.json(500, {error: err});
+		// 	}
+
+		// 	var updates = req.body.updates;
+		// 	Applications.updateAllApps(client, updates, function(err, result) {
+		// 		done();
+
+		// 		if (err) {
+		// 			res.json(500, {error: err});
+		// 		} else {
+		// 			res.json(200, {result: result});
+		// 			// res.json(200, {message: '/returns number of updated apps'});
+		// 		}
+
+		// 		client.end();
+		// 	});	//	end updateAllApps()
+		// });	//	end pg.connect
+	})
+
+	.delete(function(req, res) {
+		pg.connect(db, function(err, client, done) {
 			if (err) {
-				res.json(500, {error: err});
-			} else {
-				res.json(200, {result: result});
-				// res.json(200, {message: '/returns number of updated apps'});
+				return res.json(500, {error: err});
 			}
 
-			client.end();
-		});	//	end updateAllApps()
-	});	//	end pg.connect
-});
+			Applications.deleteAllApps(client, function(err, result) {
+				done();
 
-applications.delete('/', function(req, res) {
-	pg.connect(db, function(err, client, done) {
-		if (err) {
-			return res.json(500, {error: err});
-		}
+				if (err) {
+					res.json(500, {error: err.detail});
+				} else {
+					res.json(200, {result: "deleted "+result+ " applications"});
+				}
 
-		Applications.deleteAllApps(client, function(err, result) {
-			done();
+				client.end();
+			});	//	end deleteAllApps
+		});	//	end pg.connect
+	});
 
+applications.route('/:id')
+	.get(function(req, res) {
+		pg.connect(db, function(err, client, done) {
 			if (err) {
-				res.json(500, {error: err});
-			} else {
-				res.json(204, result);
-				// res.json(200, {message: '/returns the id of the deleted app'});
+				return res.json(500, {error: err});
 			}
 
-			client.end();
-		});	//	end deleteAllApps
-	});	//	end pg.connect
-});
+			var id = req.params.id;
+			Applications.getAppById(client, id, function(err, result) {
+				done();
 
+				if (!err && result) {
+					res.json(200, result);
+				} else if (!err) {
+					res.json(404, {"error": "Couldn't find app with id\t" + id});
+				} else {
+					res.json(500, err);
+				}
 
-/** ==========
-*
-*	/applications/:id
-*
-*/
+				client.end();
+			});
+		});
+	})
 
-applications.get('/:id', function(req, res) {
-	pg.connect(db, function(err, client, done) {
-		if (err) {
-			return res.json(500, {error: err});
-		}
-
+	//	TODO: decide whether this method is necessary, either implement or delete
+	.put(function(req, res) {
 		var id = req.params.id;
-		Applications.getAppById(client, id, function(err, result) {
-			done();
+		// res.json(200, {application: '/returns ' + id + ' s updated application document'});
+		res.json(500, {error: 'route not implemented!'});
+	})
 
-			if (!err && result) {
-				res.json(200, result);
-			} else if (!err) {
-				res.json(404, {"error": "Couldn't find app with id\t" + id});
-			} else {
-				res.json(500, err);
+	.delete(function(req, res) {
+		pg.connect(db, function(err, client, done) {
+			if (err) {
+				return res.json(500, {error: err});
 			}
 
-			client.end();
+			var id = req.params.id;
+			Applications.deleteAppById(client, id, function(err, result) {
+				done();
+
+				if (!err && result) {
+					res.json(200, {"result": result + " app with id " + id + " deleted." });
+				} else if (!err) {
+					res.json(404, {"error": "Couldn't find application with id\t" + id});
+				} else {
+					res.json(500, {error: err});
+				}
+
+				client.end();
+			});
 		});
 	});
-});
-
-//	TODO: decide whether this method is necessary, either implement or delete
-applications.put('/:id', function(req, res) {
-	var id = req.params.id;
-	// res.json(200, {application: '/returns ' + id + ' s updated application document'});
-	res.json(500, {error: 'route not implemented!'});
-});
-
-applications.delete('/:id', function(req, res) {
-	pg.connect(db, function(err, client, done) {
-		if (err) {
-			return res.json(500, {error: err});
-		}
-
-		var id = req.params.id;
-		Applications.deleteAppById(client, id, function(err, result) {
-			done();
-
-			if (!err && result) {
-				res.json(200, {"result": "app " + id + " deleted." });
-			} else if (!err) {
-				res.json(404, {"error": "Couldn't find application with id\t" + id});
-			} else {
-				res.json(500, {error: err});
-			}
-
-			client.end();
-		});
-	});
-});
 
 
 module.exports = applications;

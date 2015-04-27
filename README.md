@@ -109,7 +109,6 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 		- **Error**:
 			- **Status code**: `500`
 			- **Response body**: `{error: "..."}`
-			- **NOTE**: improper error handling; see [issue #5](https://github.com/wmcn-fm/wmcn-api/issues/5)
 
 ##### <a name="users-id">`/users/:id`</a>
 
@@ -140,7 +139,6 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 		- **Error**:
 			- **Status code**: `404`
 			- **Response body**: `{error: user <id> doesn't exist}`
-			- **NOTE**: improper error handling; see [issue #5](https://github.com/wmcn-fm/wmcn-api/issues/5)
 
 ##### <a name="users-shows">`/users/:id/shows`</a>
 
@@ -226,7 +224,6 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 		- **Error**:
 			- **Status code**: `500`
 			- **Response body**: `{error: "..."}`
-			- **NOTE**: improper error handling; see [issue #5](https://github.com/wmcn-fm/wmcn-api/issues/5)
 
 ##### <a name="shows-id">`/shows/:id`</a>
 
@@ -257,7 +254,6 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 		- **Error**:
 			- **Status code**: `404`
 			- **Response body**: `{error: show <id> doesn't exist}`
-			- **NOTE**: improper error handling; see [issue #5](https://github.com/wmcn-fm/wmcn-api/issues/5)
 
 ##### <a name="shows-hosts">`/shows/:id/hosts`</a>
 
@@ -335,7 +331,6 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 		- **Error**:
 			- **Status code**: `500`
 			- **Response body**: `{error: "..."}`
-			- **NOTE**: improper error handling; see [issue #5](https://github.com/wmcn-fm/wmcn-api/issues/5)
 
 ##### <a name="pl-id">`/playlists/:id`</a>
 
@@ -366,7 +361,6 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 		- **Error**:
 			- **Status code**: `404`
 			- **Response body**: `{error: playlist <id> doesn't exist}`
-			- **NOTE**: improper error handling; see [issue #5](https://github.com/wmcn-fm/wmcn-api/issues/5)
 
 ##### <a name="pl-limit">`/playlists/?limit`</a>
 - **Method**: `GET`
@@ -421,7 +415,6 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 		- **Error**:
 			- **Status code**: `500`
 			- **Response body**: `{error: "..."}`
-			- **NOTE**: improper error handling; see [issue #5](https://github.com/wmcn-fm/wmcn-api/issues/5)
 
 ##### <a name="schedule-ts">`/schedule/:timeslot`</a>
 - **Method**: `GET`
@@ -512,7 +505,6 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 		- **Error**:
 			- **Status code**: `500`
 			- **Response body**: `{error: "..."}`
-			- **NOTE**: improper error handling; see [issue #5](https://github.com/wmcn-fm/wmcn-api/issues/5)
 
 ####Hosts
 ##### <a name="hosts">`/hosts`</a>
@@ -559,7 +551,6 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 		- **Error**:
 			- **Status code**: `500`
 			- **Response body**: `{error: "..."}`
-			- **NOTE**: improper error handling; see [issue #5](https://github.com/wmcn-fm/wmcn-api/issues/5)
 
 ####Articles
 ##### <a name="articles">`/articles`</a>
