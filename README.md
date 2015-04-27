@@ -273,10 +273,12 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 
 ##### <a name="shows-playlists">`/shows/:id/playlists`</a>
 - **Method**: `GET`
-- **NOTE**: in development; [see issue 10](https://github.com/wmcn-fm/wmcn-api/issues/10)
 	- **Description**: Get all playlists associated with a given show
 	- **Request params**: `id`: show id
 	- **Request body**: *None*
+	- **Request queries**:
+		- **optional**: `limit`: int
+		- **example**: `http://api.wmcn.fm/v0/users?limit=5`
 	- **Response**:
 		- **Success**: 
 			- **Status code**: `200`

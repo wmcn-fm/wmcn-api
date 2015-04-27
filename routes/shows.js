@@ -189,6 +189,50 @@ shows.route('/:id')
   });
 
 
+shows.get('/:id/playlists', function(req, res) {
+  pg.connect(db, function(err, client, done) {
+    if (err) {
+      return res.json(500, {error: err});
+    }
+
+    var show_id = req.params.id;
+    api.get('/shows/' + show_id, function(err, result, statusCode) {
+      if (err) {
+        return res.json(500, {error: err});
+      } else if (!err && result && statusCode === 200) {
+        
+        if (!req.query.limit) {
+
+          Shows.getAllPlaylists(client, show_id, function(err, result) {
+            if (err) {
+              res.json(500, {error: err});
+            } else if (result.length === 0) {
+              res.json(404, {error: "show " + show_id + " hasn't posted any playlists"});
+            } else {
+              res.json(200, {playlists: result});
+            }
+          }); //end getPlaylists
+        } else {
+          
+          var limit = parseInt(req.query.limit);
+          Shows.getPlaylists(client, show_id, limit, function(err, result) {
+            if (err) {
+              res.json(500, {error: err});
+            } else if (result.length === 0) {
+              res.json(404, {error: "show " + show_id + " hasn't posted any playlists"});
+            } else {
+              res.json(200, {playlists: result});
+            }
+          });
+        }
+
+      } else {
+        return res.json(statusCode, result);
+      }
+    }); //  end api.get
+  }); 
+});
+
 //	GET a show's hosts' user objects
 shows.get('/:id/hosts', function(req, res) {
   res.json(500, {error: 'not configured'});

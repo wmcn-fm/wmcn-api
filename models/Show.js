@@ -107,6 +107,36 @@ Show.getShowById = function(client, show_id, cb) {
 	});
 }
 
+Show.getAllPlaylists = function(client, show_id, cb) {
+  var query = "SELECT * FROM playlists WHERE show_id = $1 ORDER BY created DESC";
+  var values = [show_id];
+  // if (limit !== undefined) {
+  //   query += " LIMIT $2";
+  //   values.push(limit);
+  // }
+
+  client.query(query, values, function(err, result) {
+    if (err) {
+      cb(err);
+    } else {
+      cb(null, result.rows);
+    }
+  });
+}
+
+Show.getPlaylists = function(client, show_id, limit, cb) {
+  var query = "SELECT * FROM playlists WHERE show_id = $1 ORDER BY created DESC LIMIT $2";
+  var values = [show_id, limit];
+
+  client.query(query, values, function(err, result) {
+    if (err) {
+      cb(err);
+    } else {
+      cb(null, result.rows);
+    }
+  });
+}
+
 //	TODO: add this method
 //	UPDATE one show from the table by its id
 Show.updateShowById = function(client, show_id, updates, cb) {
