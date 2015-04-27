@@ -62,7 +62,7 @@ users.route('/')
 			// TODO: when POSTing is set up on the client, uncomment the line below instead of makeRandomUser()
 			// var user = req.body.user;
 			var user = faker.makeRandomUser();
-			api.get('/users/e/' + user.email, function(err, result, statusCode) {
+			api.get('/users?email=' + user.email, function(err, result, statusCode) {
 				if (err) {
 					return res.json(500, {error: err});
 
