@@ -8,7 +8,7 @@ var Show = {};
 
 //	SELECT all shows in the table
 Show.getAllShows = function(client, cb) {
-	var query = client.query("SELECT * FROM shows");
+	var query = client.query("SELECT * FROM shows ORDER BY created DESC");
 
 	query.on('error', function(err) {
 		cb(err);
