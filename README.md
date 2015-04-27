@@ -66,14 +66,17 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 	- **Description**: get all users in the table
 	- **Request params**: *none*
 	- **Request body**: *none*
+	- **Request queries**:
+		- **optional**: `email`: user email address
+		- **example**: `http://api.wmcn.fm/v0/users?email=wmcn@macalester.edu`
 	- **Response**:
 		- **Success**:
 			- **Status code**: `200`
 			- **Response body**: `{users: [...]}`
 			- **Description**: An array of user rows
 		- **Error**:
-			- **Status code**: `500`
-			- **Response body**: `{error: "..."}`
+			- **Status code**: `404`
+			- **Response body**: `{error: "user <email> doesn't exist"}` [if using email query]
 
 - **Method**: `POST`
 	- **Description**: add one user to the table

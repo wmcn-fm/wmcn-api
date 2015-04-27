@@ -35,7 +35,7 @@ Users.deleteAllUsers = function(client, cb) {
   });
 
   query.on('end', function(result) {
-    cb(null, result.rows);
+    cb(null, result.rowCount);
   });
 }
 
@@ -151,7 +151,7 @@ Users.deleteUserById = function(client, user_id, cb) {
     if (err) {
       return cb(err);
     } else {
-      cb(null, result);
+      cb(null, result.rowCount);
     }
   });
 }
