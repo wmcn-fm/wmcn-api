@@ -10,190 +10,155 @@ var api = require('../models/api');
 var faker = require('../test/fake');
 var utils = require('../test/utils');
 
+playlists.route('/')
+	.get(function(req, res) {
+	  pg.connect(db, function(err, client, done) {
+	  	if (err) {
+	  		return res.json(500, {error: err});
+	  	}
 
-/**	==========
-*
-*	/playlists
-*
-*/
+	  	if (!req.query.limit) {
+		  	Playlists.getAllPlaylists(client, function(err, result) {
+		  		done();
 
-//	GET all playlists in the table
-playlists.get('/', function(req, res) {
-  pg.connect(db, function(err, client, done) {
-  	if (err) {
-  		return res.json(500, {error: err});
-  	}
+		  		if (err) {
+		  			res.json(500, {error: err});
+		  		} else {
+		  			res.json(200, {playlists: result});
+		  		}
 
-  	if (!req.query.limit) {
+		  		client.end();
+		  	});	//	end Playlists.getAllPlaylists 		
+	  	} else {
 
-  		console.log('no req.quer!\t', req.query.limit)
-	  	Playlists.getAllPlaylists(client, function(err, result) {
-	  		done();
+	  		var n = parseInt(req.query.limit);
+	  		Playlists.getPlaylists(client, n, function(err, result) {
+	  			done();
+	  			
+	  			if (err) {
+	  				res.json(500, {error: err});
+	  			} else {
+	  				res.json(200, {playlists: result});
+	  			}
 
-	  		if (err) {
-	  			res.json(500, {error: err});
-	  		} else {
-	  			res.json(200, {playlists: result});
-	  		}
+	  			client.end();
+	  		});
+	  	}
+	  	
+	  });	//	end pg.connect
+	})	//	end .get
 
-	  		client.end();
-	  	});	//	end Playlists.getAllPlaylists 		
-  	} else {
-
-  		console.log('req.query.limit=\t', req.query.limit);
-  		var n = req.query.limit;
-  		Playlists.getPlaylists(client, n, function(err, result) {
-  			done();
-  			res.send(result);
-
-  			client.end();
-  		});
-  	}
-  	
-  });	//	end pg.connect
-});
-
-//	TODO: refactor fake data generator, or 
-//				at delete this whole if/else loop for production
-
-//	POST a new playlist to the table
-playlists.post('/', function(req, res) {	
-	pg.connect(db, function(err, client, done) {
-		if (err) {
-			return res.json(500, {error: err});
-		}
-
-		var pl;
-		if (process.env.NODE_ENV !== 'development') {
-			pl = req.body.playlist;
-		} else {
-			pl = faker.makeRandomPlaylist();
-			utils.getValid('shows', function(err, random_id) {
-				pl.show_id = random_id;
-				Playlists.addPlaylist(client, pl, function(err, result) {
-					done();
-
-					if (err) {
-						return res.json(500, {error: err});
-					} else {
-						res.json(201, {result: result.rowCount + " playlist created."});
-					}
-
-					client.end();
-				});	//	end pl.addPlaylist
-			});
-		}
-	});	//	end pg.connect
-});
-
-//	PUT an update to every playlist in the table
-playlists.put('/', function(req, res) {
-	var updates = req.body.updates;
-
-	pg.connect(db, function(err, client, done) {
-		if (err) {
-			return res.json(500, {error: err});
-		}
-
-		Playlists.updateAllPlaylists(client, updates, function(err, result) {
-			done();
-
+	//	POST a new playlist to the table
+	.post(function(req, res) {	
+		pg.connect(db, function(err, client, done) {
 			if (err) {
-				res.json(500, {error: err});
-				// res.json(200, {message: '/returns number of updated playlists'});
-			} else {
-				res.json(201, {result: result});
+				return res.json(500, {error: err});
 			}
 
-			client.end();
-		});	//	end updateAllPlaylists()
-	});	//	end pg.connect
-});
+			var pl;
+			if (process.env.NODE_ENV === 'production') {
+				pl = req.body.playlist;
+				res.json(500, {error: 'not configured for production!!'});
+			} else {
+				pl = faker.makeRandomPlaylist();
+				utils.getValid('shows', function(err, random_id) {
+					pl.show_id = random_id;
+					Playlists.addPlaylist(client, pl, function(err, result) {
+						done();
 
-//	DELETE all playlists in the table
-playlists.delete('/', function(req, res) {
-	pg.connect(db, function(err, client, done) {
-		if (err) {
-			return res.json(500, {error: err});
-		}
+						if (err) {
+							return res.json(500, {error: err});
+						} else {
+							res.json(201, {result: result.rowCount + " playlist created."});
+						}
 
-		Playlists.deleteAllPlaylists(client, function(err, result) {
-			done();
+						client.end();
+					});	//	end pl.addPlaylist
+				});
+			}
+		});	//	end pg.connect
+	})	//	end .post
 
+	//	DELETE all playlists in the table
+	.delete(function(req, res) {
+		pg.connect(db, function(err, client, done) {
 			if (err) {
-				res.json(500, {error: err});
-				// res.json(200, {message: '/returns the id of the deleted playlist'});
-			} else {
-				res.json(200, {result: result});
+				return res.json(500, {error: err});
 			}
 
-			client.end();
-		});	//	end deleteAllPlaylists
-	});	//	end pg.connect
-});
+			Playlists.deleteAllPlaylists(client, function(err, result) {
+				done();
 
-/** ==========
-*
-*	/playlists/:id
-*
-*/
+				if (err) {
+					res.json(500, {error: err});
+					// res.json(200, {message: '/returns the id of the deleted playlist'});
+				} else {
+					res.json(200, {result: result});
+				}
 
-//	GET one playlist by its id
-playlists.get('/:id', function(req, res) {
-	var id = req.params.id;
+				client.end();
+			});	//	end deleteAllPlaylists
+		});	//	end pg.connect
+	});	//	end .delete
 
-	pg.connect(db, function(err, client, done) {
-		if (err) {
-			return res.json(500, err);
-		}
+playlists.route('/:id')
+	//	GET one playlist by its id
+	.get(function(req, res) {
+		var id = req.params.id;
 
-		Playlists.getPlaylistById(client, id, function(err, result) {
-			done();
-
-			if (!err && result) {
-				res.json(200, result);
-			} else if (!err) {
-				res.json(404, {"error": "Couldn't find playlist with id\t" + id});
-			} else {
-				res.json(500, err);
+		pg.connect(db, function(err, client, done) {
+			if (err) {
+				return res.json(500, {error: err});
 			}
 
-			client.end();
-		});
-	});
-});
+			Playlists.getPlaylistById(client, id, function(err, result) {
+				done();
 
-//	PUT one playlist by its id
-playlists.put('/:id', function(req, res) {
-	var id = req.params.id;
+				if (!err && result) {
+					res.json(200, {playlist: result});
+				} else if (!err) {
+					res.json(404, {"error": "Couldn't find playlist with id\t" + id});
+				} else {
+					res.json(500, {error: err});
+				}
 
-	//	TODO: implement this route
-	// res.json(200, {playlist: '/returns ' + id + ' s updated playlist document'});
-});
+				client.end();
+			});	//	end getPlaylist
+		});	//	end pg.connect
+	})	//	end .get
 
-playlists.delete('/:id', function(req, res) {
-	var id = req.params.id;
+	//	PUT one playlist by its id
+	.put(function(req, res) {
+		var id = req.params.id;
+		res.json(500, {error: 'route not implemented'});
+		//	TODO: implement this route
+		// res.json(200, {playlist: '/returns ' + id + ' s updated playlist document'});
+	})
 
-	pg.connect(db, function(err, client, done) {
-		if (err) {
-			return res.json(500, err);
-		}
+	.delete(function(req, res) {
+		var id = req.params.id;
 
-		Playlists.deletePlaylistById(client, id, function(err, result) {
-			done();
-
-			if (!err && result) {
-				res.json(200, {"result": "Playlist " + id + " deleted." });
-				// res.json(200, {message: '/returns the id of the deleted playlist: ' + id});
-			} else if (!err) {
-				res.json(404, {"error": "Couldn't find playlist with id\t" + id});
-			} else {
-				res.json(500, err);
+		pg.connect(db, function(err, client, done) {
+			if (err) {
+				return res.json(500, err);
 			}
 
-			client.end();
-		});
-	});
-});
+			Playlists.deletePlaylistById(client, id, function(err, result) {
+				done();
+
+				if (!err && result) {
+					res.json(200, {"result": "Playlist " + id + " deleted." });
+					// res.json(200, {message: '/returns the id of the deleted playlist: ' + id});
+				} else if (!err) {
+					res.json(404, {"error": "Couldn't find playlist with id\t" + id});
+				} else {
+					res.json(500, err);
+				}
+
+				client.end();
+			});	//	end Playlists.delete
+		});	//	end pg.connect
+	});	//	end .delete
+
 
 module.exports = playlists;

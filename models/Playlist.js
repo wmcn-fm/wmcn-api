@@ -8,7 +8,7 @@ var Playlist = {};
 
 //	SELECT all playlists in the table
 Playlist.getAllPlaylists = function(client, cb) {
-	var query = client.query("SELECT * FROM playlists");
+	var query = client.query("SELECT * FROM playlists ORDER BY created DESC");
 
 	query.on('error', function(err) {
 		cb(err);
@@ -70,13 +70,13 @@ Playlist.deleteAllPlaylists = function(client, cb) {
   });
 
   query.on('end', function(result) {
-    cb(null, result.rows);
+    cb(null, result.rows);8
   });
 }
 
 Playlist.getPlaylists = function(client, n, cb) {
-  var query = client.query("SELECT * FROM playlists LIMIT $1");
-  var limit = [n];
+  var query = "SELECT * FROM playlists ORDER BY created DESC LIMIT $1";
+  var limit = [parseInt(n)];
   client.query(query, limit, function(err, result) {
     if (err) {
       return cb(err);
@@ -96,10 +96,10 @@ Playlist.getPlaylists = function(client, n, cb) {
 //	@param "pl": JSON object containing fields:
 //		id: int, content: string, created: date
 Playlist.addPlaylist = function (client, pl, cb) {
-	var plArr = [ pl.show_id, pl.content];
-	var qStr = "INSERT INTO playlists(show_id, content) \
+	var values = [ parseInt(pl.show_id), pl.content];
+	var query = "INSERT INTO playlists(show_id, content) \
 							VALUES($1, $2)";
-	client.query(qStr, plArr, function(err, result) {
+	client.query(query, values, function(err, result) {
 		if (err) {
 			return cb(err);
 		} else {
@@ -109,8 +109,9 @@ Playlist.addPlaylist = function (client, pl, cb) {
 }
 
 Playlist.getPlaylistById = function(client, playlist_id, cb) {
-	var qStr = "SELECT id, content, created FROM playlists WHERE id = $1";
-	client.query(qStr, [playlist_id], function(err, result) {
+	var query = "SELECT * FROM playlists WHERE id = $1";
+  var values = [parseInt(playlist_id)];
+	client.query(query, values, function(err, result) {
 		if (err) {
 			return cb(err);
 		} else {
@@ -125,8 +126,9 @@ Playlist.updatePlaylistById = function(client, playlist_id, updates, cb) {
 }
 
 Playlist.deletePlaylistById = function(client, playlist_id, cb) {
-	var qStr = "DELETE FROM playlists WHERE id = $1";
-	client.query(qStr, [playlist_id], function(err, result) {
+	var query = "DELETE FROM playlists WHERE id = $1";
+  var values = [parseInt(playlist_id)];
+	client.query(query, values, function(err, result) {
 		if (err) {
 			return cb(err);
 		} else {
