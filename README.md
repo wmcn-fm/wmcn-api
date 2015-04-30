@@ -258,7 +258,6 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 ##### <a name="shows-hosts">`/shows/:id/hosts`</a>
 
 - **Method**: `GET`
-- **NOTE**: in development; [see issue 9](https://github.com/wmcn-fm/wmcn-api/issues/9)
 	- **Description**: Get user documents for the show's hosts
 	- **Request params**: `id`: show id
 	- **Request body**: *None*
