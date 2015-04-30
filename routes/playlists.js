@@ -61,21 +61,21 @@ playlists.route('/')
 				res.json(500, {error: 'not configured for production!!'});
 			} else {
 				pl = faker.makeRandomPlaylist();
-				utils.getValid('shows', function(err, random_id) {
-					pl.show_id = random_id;
-					Playlists.addPlaylist(client, pl, function(err, result) {
-						done();
-
-						if (err) {
-							return res.json(500, {error: err});
-						} else {
-							res.json(201, {result: result.rowCount + " playlist created."});
-						}
-
-						client.end();
-					});	//	end pl.addPlaylist
-				});
+				pl.show_id = req.body.fake_show_id;
 			}
+
+			Playlists.addPlaylist(client, pl, function(err, result) {
+				done();
+
+				if (err) {
+					return res.json(500, {error: err});
+				} else {
+					res.json(201, {result: result.rowCount + " playlist created."});
+				}
+
+				client.end();
+			});	//	end pl.addPlaylist
+
 		});	//	end pg.connect
 	})	//	end .post
 
