@@ -1,4 +1,6 @@
+var forEachAsync = require('forEachAsync').forEachAsync;
 var Show = {};
+var User = require('./User');
 
 /**
 	*
@@ -194,9 +196,28 @@ Show.getHosts = function(client, show_id, cb) {
 		if (err) {
 			return cb(err);
 		} else {
-			cb(null, result.rows);
+
+      var uids = [];
+      for (var rel in result.rows) {
+        uids.push(result.rows[rel].user_id);
+      }
+
+      var users = [];
+      forEachAsync(uids, function(next, user_id, i, array) {
+        User.getUserById(client, user_id, function(err, result) {
+          if (err) {
+            return cb(err);
+          } else {
+            users.push(result[0]);
+            next();
+          }
+        })
+      }).then(function() {
+        cb(null, users);
+      });
+
 		}
-	});
+	});  //  end client.query
 }
 
 Show.addHost = function(client, show_id, host_id, cb) {

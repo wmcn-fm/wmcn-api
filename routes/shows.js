@@ -235,27 +235,26 @@ shows.get('/:id/playlists', function(req, res) {
 
 //	GET a show's hosts' user objects
 shows.get('/:id/hosts', function(req, res) {
-  res.json(500, {error: 'not configured'});
-	// pg.connect(db, function(err, client, done) {
-	// 	if (err) {
-	// 		res.json(500, {error:err});
-	// 	}
+	pg.connect(db, function(err, client, done) {
+		if (err) {
+			return res.json(500, {error:err});
+		}
 
-	// 	Shows.getHosts(client, show_id, function(err, result) {
-	// 		done();
+    var show_id = req.params.id;
+		Shows.getHosts(client, show_id, function(err, result) {
+			done();
 
-	// 		if (err) {
-	// 			res.json(500, err);
-	// 		}
+      if (!err && result.length > 0) {
+        res.json(200, {hosts: result});
+      } else if (!err) {
+        res.json(404, {error: "show " + show_id + " has no listed hosts"});
+      } else {
+        res.json(500, {error: err});
+      }
 
-	// 		//	FIX ME: make additional call to Users.getUserById for
-	// 		//					each user Id returned, and return a list of userobjs
-	// 		res.json(200, result);
-	// 		// res.json(200, {message: '/returns the user documents associated with ' + id + 's show'});
-
-	// 		client.end();
-	// 	});
-	// });
+			client.end();
+		});
+	});
 });
 
 module.exports = shows;
