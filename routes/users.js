@@ -74,7 +74,12 @@ users.route('/')
 						if (err) {
 							res.json(500, {error: err});
 						} else {
-							res.json(201, {"result": result.rowCount + " user created."});
+							res.json(201, 
+								{
+									"result": result.rowCount + " user created.",
+									"new_id": result.rows[0].id
+								}
+							);
 						}
 
 						client.end();
