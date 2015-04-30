@@ -10,6 +10,7 @@ var shows = require('./routes/shows');
 var playlists = require('./routes/playlists');
 var schedule = require('./routes/schedule');
 var applications = require('./routes/applications');
+var hosts = require('./routes/hosts');
 
 var app = express();
 
@@ -33,6 +34,7 @@ app.use('/shows', shows);
 app.use('/playlists', playlists);
 app.use('/schedule', schedule);
 app.use('/applications', applications);
+app.use('/hosts', hosts);
 
 /// catch 404 and forward to error handler
 app.use(function(req, res, next) {

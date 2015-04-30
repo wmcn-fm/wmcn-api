@@ -510,7 +510,7 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 
 ####Hosts
 ##### <a name="hosts">`/hosts`</a>
-- **NOTE**: entire route in development; see [issue #12](https://github.com/wmcn-fm/wmcn-api/issues/12)
+
 - **Method**: `GET`
 	- **Description**: get all user-show relationships
 	- **Request params**: *none*
@@ -543,13 +543,13 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 	- **NOTE**: in development; see [issue #2](https://github.com/wmcn-fm/wmcn-api/issues/2)
 
 - **Method**: `DELETE`
-	- **Description**: delete the hosts table
+	- **Description**: remove a host from a show
 	- **Request params**: *none*
-	- **Request body**: *none*
+	- **Request body**: `show_id`: valid show id number [required]; `user_id`: valid user id number [required];
 	- **Response**: 
 		- **Success**:
-			- **Status code**: `204`
-			- **Response body**: `{result: "<number> host relations deleted."}`
+			- **Status code**: `200`
+			- **Response body**: `{result: "removed user <user_id> from show <show_id>"}`
 		- **Error**:
 			- **Status code**: `500`
 			- **Response body**: `{error: "..."}`

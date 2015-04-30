@@ -189,14 +189,40 @@ Show.getActiveShows = function(client, cb) {
 
 //	SELECT users attached to a given show_id
 Show.getHosts = function(client, show_id, cb) {
-	var qStr = "SELECT * from assignShow WHERE show_id = $1";
+	var qStr = "SELECT * FROM hosts WHERE show_id = $1";
 	client.query(qStr, [show_id], function(err, result) {
 		if (err) {
 			return cb(err);
 		} else {
-			cb(null, result);
+			cb(null, result.rows);
 		}
 	});
+}
+
+Show.addHost = function(client, show_id, host_id, cb) {
+  var query = "INSERT INTO hosts(show_id, user_id) VALUES ($1, $2)";
+  var values = [show_id, host_id];
+  client.query(query, values, function(err, result) {
+    if (err) return cb(err);
+    cb(null, result);
+  });
+}
+
+Show.removeHost = function(client, show_id, host_id, cb) {
+  var query = "DELETE FROM hosts WHERE show_id = $1 AND user_id = $2";
+  var values = [show_id, host_id];
+  client.query(query, values, function(err, result) {
+    if (err) return cb(err);
+    cb(null, result);
+  });
+}
+
+Show.getAllHosts = function(client, cb) {
+  var query = "SELECT * FROM hosts";
+  client.query(query, function(err, result) {
+    if (err) return cb(err);
+    cb(null, result.rows);
+  });
 }
 
 //	TODO: add additional logic to return -1 if the
