@@ -1,4 +1,6 @@
 # wmcn-api
+[![Build Status](https://travis-ci.org/wmcn-fm/wmcn-api.svg?branch=master)](https://travis-ci.org/wmcn-fm/wmcn-api)
+
 RESTful API server for [WMCN](http://wmcn.fm)
 
 ## Setup
@@ -29,7 +31,7 @@ $ node lib/setTables.js
 
 ```
 $ DEBUG=wmcn-api NODE_ENV=development USER=username PW=devpw npm start
-	# app runs on localhost:3001 w/ nodemon, prints full error stack, 
+	# app runs on localhost:3001 w/ nodemon, prints full error stack,
 	# uses local postgres instance
 
 $ sudo NODE_ENV=production USER=username PW=productionpw npm start
@@ -86,9 +88,9 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 			- `first_name` (string), `last_name` (string),
 			- `phone` (string), `email` (unique string), `hash` (string [hashed pw])
 		- **optional**:
-			- `grad_year` (int), `mac_id` (int), `iclass` (int), 
+			- `grad_year` (int), `mac_id` (int), `iclass` (int),
 	- **Response**:
-		- **Success**: 
+		- **Success**:
 			- **Status code**: `201`
 			- **Response body**: `{"result":"1 user created."}`
 		- **Error**:
@@ -102,7 +104,7 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 	- **Description**: delete all users in the database
 	- **Request params**: *none*
 	- **Request body**: *none*
-	- **Response**: 
+	- **Response**:
 		- **Success**:
 			- **Status code**: `204`
 			- **Response body**: `{result: "<number> users deleted."}`
@@ -117,7 +119,7 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 	- **Request params**: `id`: user id number
 	- **Request body**: *none*
 	- **Response**:
-		- **Success**: 
+		- **Success**:
 			- **Status code**: `200`
 			- **Response body**: `{user: ...}`
 			- **Description**: one user row, in JSON form
@@ -133,7 +135,7 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 	- **Request params**: `id`: user id number
 	- **Request body**: *none*
 	- **Response**:
-		- **Success**: 
+		- **Success**:
 			- **Status code**: `204`
 			- **Response body**: `{result: "1 user deleted."}`
 		- **Error**:
@@ -147,7 +149,7 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 	- **Request params**: `id`: user id
 	- **Request body**: *none*
 	- **Response**:
-		- **Success**: 
+		- **Success**:
 			- **Status code**: `200`
 			- **Response body**: `{shows: [...]}`
 			- **Description**: JSON object `shows`, an array of show rows
@@ -162,7 +164,7 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 	- **Request params**: `id`: user id
 	- **Request body**: *none*
 	- **Response**:
-		- **Success**: 
+		- **Success**:
 			- **Status code**: `200`
 			- **Response body**: `{shows: [...]}`
 			- **Description**: JSON object `shows`, an array of show rows
@@ -202,7 +204,7 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 		- **required**:
 			- `title` (string), `blurb` (string), `timeslot` (int array)
 	- **Response**:
-		- **Success**: 
+		- **Success**:
 			- **Status code**: `201`
 			- **Response body**: `{"result":"1 show created."}`
 		- **Error**:
@@ -217,7 +219,7 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 	- **Description**: delete all shows in the database
 	- **Request params**: *none*
 	- **Request body**: *none*
-	- **Response**: 
+	- **Response**:
 		- **Success**:
 			- **Status code**: `204`
 			- **Response body**: `{result: "<number> shows deleted."}`
@@ -232,7 +234,7 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 	- **Request params**: `id`: show id number
 	- **Request body**: *none*
 	- **Response**:
-		- **Success**: 
+		- **Success**:
 			- **Status code**: `200`
 			- **Response body**: `{show: ...}`
 			- **Description**: one show row, in JSON form
@@ -248,7 +250,7 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 	- **Request params**: `id`: show id number
 	- **Request body**: *none*
 	- **Response**:
-		- **Success**: 
+		- **Success**:
 			- **Status code**: `204`
 			- **Response body**: `{result: "1 show deleted."}`
 		- **Error**:
@@ -262,7 +264,7 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 	- **Request params**: `id`: show id
 	- **Request body**: *None*
 	- **Response**:
-		- **Success**: 
+		- **Success**:
 			- **Status code**: `200`
 			- **Response body**: `{users: [...]}`
 		- **Error**:
@@ -279,7 +281,7 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 		- **optional**: `limit`: int
 		- **example**: `http://api.wmcn.fm/v0/users?limit=5`
 	- **Response**:
-		- **Success**: 
+		- **Success**:
 			- **Status code**: `200`
 			- **Response body**: `{playlists: [...]}`
 		- **Error**:
@@ -311,7 +313,7 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 		- **required**:
 			- `show_id` (int, valid show ID), `content` (string)
 	- **Response**:
-		- **Success**: 
+		- **Success**:
 			- **Status code**: `201`
 			- **Response body**: `{"result":"1 playlist created."}`
 		- **Error**:
@@ -325,7 +327,7 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 	- **Description**: delete all playlists in the database
 	- **Request params**: *none*
 	- **Request body**: *none*
-	- **Response**: 
+	- **Response**:
 		- **Success**:
 			- **Status code**: `204`
 			- **Response body**: `{result: "<number> playlists deleted."}`
@@ -340,7 +342,7 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 	- **Request params**: `id`: playlist id number
 	- **Request body**: *none*
 	- **Response**:
-		- **Success**: 
+		- **Success**:
 			- **Status code**: `200`
 			- **Response body**: `{playlist: ...}`
 			- **Description**: one playlist row, in JSON form
@@ -356,7 +358,7 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 	- **Request params**: `id`: playlist id number
 	- **Request body**: *none*
 	- **Response**:
-		- **Success**: 
+		- **Success**:
 			- **Status code**: `204`
 			- **Response body**: `{result: "1 playlist deleted."}`
 		- **Error**:
@@ -369,7 +371,7 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 	- **Request params**: `limit`: integer
 	- **Request body**: *none*
 	- **Response**:
-		- **Success**: 
+		- **Success**:
 			- **Status code**: `200`
 			- **Response body**: `{playlists: [...]}`
 		- **Error**:
@@ -398,7 +400,7 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 		- **required**:
 			- `timeslot`: int, range 0-167; `show_id`: valid show id number
 	- **Response**:
-		- **Success**: 
+		- **Success**:
 			- **Status code**: `201`
 			- **Response body**: `{"result":"1 show added to the schedule."}`
 		- **Error**:
@@ -409,7 +411,7 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 	- **Description**: delete the schedule
 	- **Request params**: *none*
 	- **Request body**: *none*
-	- **Response**: 
+	- **Response**:
 		- **Success**:
 			- **Status code**: `204`
 			- **Response body**: `{result: "<number> schedule relations deleted."}`
@@ -423,7 +425,7 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 	- **Request params**: `timeslot`: int, range 0-167
 	- **Request body**: *none*
 	- **Response**:
-		- **Success**: 
+		- **Success**:
 			- **Status code**: `200`
 			- **Response body**: `{show: ...}`
 		- **Error**:
@@ -435,7 +437,7 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 	- **Request params**: `timeslot`: int, range 0-167
 	- **Request body**: *none*
 	- **Response**:
-		- **Success**: 
+		- **Success**:
 			- **Status code**: `200`
 			- **Response body**: `{"result": "cleared spot <timeslot>"}`
 		- **Error**:
@@ -449,7 +451,7 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 	- **Request params**: *none*
 	- **Request body**: *none*
 	- **Response**:
-		- **Success**: 
+		- **Success**:
 			- **Status code**: `200`
 			- **Response body**: `{show: ...}`
 		- **Error**:
@@ -479,13 +481,13 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 	- **Request body**: `application` object containing:
 		- **required**:
 			- `first_name` (string array), `last_name` (string array),
-			- `phone` (string array), `email` (unique string array), 
-			- `title` (string), `blurb` (string), `availability` (int array), 
+			- `phone` (string array), `email` (unique string array),
+			- `title` (string), `blurb` (string), `availability` (int array),
 		- **optional**:
-			- `grad_year` (int array), `mac_id` (int array), `iclass` (int array), 
+			- `grad_year` (int array), `mac_id` (int array), `iclass` (int array),
 			- `time_pref` (int), `description` (string)
 	- **Response**:
-		- **Success**: 
+		- **Success**:
 			- **Status code**: `201`
 			- **Response body**: `{"result":"1 user created."}`
 		- **Error**:
@@ -499,7 +501,7 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 	- **Description**: delete all applications in the database
 	- **Request params**: *none*
 	- **Request body**: *none*
-	- **Response**: 
+	- **Response**:
 		- **Success**:
 			- **Status code**: `204`
 			- **Response body**: `{result: "<number> applications deleted."}`
@@ -530,7 +532,7 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 		- **required**:
 			- `user_id`: valid user id number; `show_id`: valid show id number
 	- **Response**:
-		- **Success**: 
+		- **Success**:
 			- **Status code**: `201`
 			- **Response body**: `{"result":"1 relationship added to the table."}`
 		- **Error**:
@@ -545,7 +547,7 @@ $ sudo NODE_ENV=production USER=username PW=productionpw npm start
 	- **Description**: remove a host from a show
 	- **Request params**: *none*
 	- **Request body**: `show_id`: valid show id number [required]; `user_id`: valid user id number [required];
-	- **Response**: 
+	- **Response**:
 		- **Success**:
 			- **Status code**: `200`
 			- **Response body**: `{result: "removed user <user_id> from show <show_id>"}`
@@ -567,8 +569,3 @@ Developed as an independent study with Professor Bret Jackson, spring 2015
 ## License
 
 MIT
-
-
-
-
-
