@@ -40,7 +40,7 @@ users.route('/')
 
 					if (!err && (result.length > 0) ) {
 						res.json(200, {user: result[0]});
-					} else if (result.length === 0) {
+					} else if (!err) {
 						res.json(404, {error: 'user ' + email + ' does not exist'});
 					} else {
 						res.json(500, {error: err});
@@ -59,9 +59,15 @@ users.route('/')
 				return res.json(500, {error: err});
 			}
 
-			// TODO: when POSTing is set up on the client, uncomment the line below instead of makeRandomUser()
-			// var user = req.body.user;
-			var user = faker.makeRandomUser();
+			var user;
+			if (process.env.NODE_ENV === 'production') {
+				user = req.body.user;
+				console.log('node env produciton!' + user);
+			} else {
+				console.log('nod env not produciton!' + user);
+				user = faker.makeRandomUser();
+			}
+
 			api.get('/users?email=' + user.email, function(err, result, statusCode) {
 				if (err) {
 					return res.json(500, {error: err});

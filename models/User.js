@@ -10,7 +10,7 @@ var Users = {};
 //  GET all users in the table
 Users.getAllUsers = function(client, cb) {
   var query = client.query("SELECT * FROM users");
-  
+
   query.on('error', function(err) {
     cb(err)
   })
@@ -47,7 +47,7 @@ Users.updateAllUsers = function(client, updates, cb) {
 
   //  iterate over the JSON object to create
   //  a string of updated fields and values to pass to the query
-  for (var key in updates) {  
+  for (var key in updates) {
     if (updates.hasOwnProperty(key)) {
       var update = key + " = " + updates[key] + ", ";
       updateString += update;
@@ -100,19 +100,19 @@ Users.getUserById = function(client, user_id, cb) {
       return cb(err);
     } else {
       cb(null, result.rows);
-    }  
+    }
   });
 }
 
 //  GET one user from the table by their email
 Users.getUserByEmail = function(client, email, cb) {
   var qStr = "SELECT * FROM users WHERE email = $1";
-  client.query(qStr, [email], function(err, result){
+    client.query(qStr, [email], function(err, result){
     if (err) {
       cb(err);
     } else {
       cb(null, result.rows);
-    }  
+    }
   });
 }
 
@@ -123,7 +123,7 @@ Users.updateUserById = function(client, user_id, updates, cb) {
 
   //  iterate over the JSON object to create
   //  a string of updated fields and values to pass to the query
-  for (var key in updates) {  
+  for (var key in updates) {
     if (updates.hasOwnProperty(key)) {
       // var update = key + " = " + updates[key] + ", ";
       updateFields += key + ', ';

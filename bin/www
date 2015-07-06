@@ -13,7 +13,8 @@ var env_variables = confjs();
 if (node_env !== 'production') {
   port = settings.api.port.dev;
 } else {
-  port = settings.api.port.production;
+  port = settings.api.port.dev;
+  // port = settings.api.port.production;
 }
 
 app.set('port', port);

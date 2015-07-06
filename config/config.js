@@ -18,8 +18,10 @@ function configure(node_env) {
     api_root_url = s.api.stem + s.api.url.dev + ":" + s.api.port.dev;
     db = db_stem + user + ":" + pw + "@" + s.db.host.dev + '/' + s.db.name.dev;
   } else {
-    api_root_url = s.api.stem + s.api.url.production + '/v' + api_version + '/';
-    db = db_stem + user + ":" + pw + "@" + s.db.host.production + '/' + s.db.name.production;
+    api_root_url = s.api.stem + s.api.url.dev + ":" + s.api.port.dev;
+    db = db_stem + user + ":" + pw + "@" + s.db.host.dev + '/' + s.db.name.dev;
+    // api_root_url = s.api.stem + s.api.url.production + '/v' + api_version + '/';
+    // db = db_stem + user + ":" + pw + "@" + s.db.host.production + '/' + s.db.name.production;
   }
 
   env.api_root_url = api_root_url;

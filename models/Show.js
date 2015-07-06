@@ -86,9 +86,9 @@ Show.deleteAllShows = function(client, cb) {
 //	@param "show": JSON object containing fields:
 //		title: string, timeslot: int, blurb: string, created: date
 Show.addShow = function (client, show, cb) {
-	var showArr = [ show.title, show.timeslot, show.blurb, ];
-	var qStr = "INSERT INTO shows(title, timeslot, blurb) \
-							VALUES($1, $2, $3)";
+	var showArr = [ show.title, show.blurb, ];
+	var qStr = "INSERT INTO shows(title, blurb) \
+							VALUES($1, $2)";
 	client.query(qStr, showArr, function(err, result) {
 		if (err) {
 			return cb(err);

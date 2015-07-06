@@ -41,26 +41,21 @@ schedule.route('/')
         show = req.body.show;
       } else {
         show = faker.makeRandomScheduleRow();
-        console.log('show before utils', show);
-        utils.getValid('shows', function(err, random_id) {
-          console.log('random_id:\t', random_id);
-          show.show_id = random_id;
-
-          console.log('show after assignment:\t', show);
-
-          Schedule.scheduleShow(client, show, function(err, result) {
-            done();
-
-            if (err) {
-              res.json(500, {error: err});
-            } else {
-              res.json(201, {result: result + " show added to the schedule."});
-            }
-
-            client.end();
-          }); //  end Schedule.scheduleShow
-        }); //  end utils.getvalid
+        show.show_id = req.body.show_id;
       }
+
+
+      Schedule.scheduleShow(client, show, function(err, result) {
+        done();
+
+        if (err) {
+          res.json(500, {error: err});
+        } else {
+          res.json(201, {result: result + " show added to the schedule."});
+        }
+
+        client.end();
+      }); //  end Schedule.scheduleShow
       
     }); //  end pg.connect
   })

@@ -41,9 +41,14 @@ shows.route('/')
   			return res.json(500, {error: err});
   		}
 
-  		// TODO: when POSTing is set up on the client, uncomment the line below instead of makeRandomShow()
-      // var show = req.body.show;
-      var show = faker.makeRandomShow();
+
+      var show;
+      if (process.env.NODE_ENV === 'production') {
+        show = req.body.show;
+      } else {
+        show = faker.makeRandomShow();
+      }
+
       Shows.addShow(client, show, function(err, result) {
         done();
 
