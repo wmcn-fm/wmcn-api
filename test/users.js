@@ -1,77 +1,79 @@
 var superagent = require('superagent');
 var expect = require('expect.js');
+var config = require('../config/config')();
+var root = config.api_root_url;
 
 describe('wmcn api server', function() {
-
-  var id = '54ea3402b6b58e1e14f2aef9';
+  var id = process.env.ID;
 
   it('gets all users', function (done) {
-    superagent.get('http://localhost:3000/users')
+    superagent.get(root + '/users')
     .end(function (e,res) {
-      // console.log(res.body);
       expect(e).to.eql(null);
       expect(res.statusCode).to.eql(200);
-      expect(res.body.users[0]._id.length).to.eql(24);
-      // expect(res.body.users[0]._id).to.eql(id);
-      done();
-    });
-  });
-
-  it('gets a user', function (done) {
-    superagent.get('http://localhost:3000/users/' + id)
-    .end(function (e, res) {
-      // console.log(res.body);
-      expect(e).to.eql(null);
-      expect(res.statusCode).to.eql(200);
-      expect(typeof res.body).to.eql('object');
-      expect(res.body._id.length).to.eql(id.length);
-      expect(res.body._id).to.eql(id);
-      done();
-    });
-  });
-
-  it('updates a user', function (done) {
-    superagent.put('http://localhost:3000/users/' + id)
-    // .send({
-    //   id: id,
-    //   firstName: 'test',
-    //   lastName: 'Test'})
-    .end(function (e, res) {
-      // console.log(res.body);
-      expect(e).to.eql(null);
-      expect(res.statusCode).to.eql(200);
-      expect(typeof res.body).to.eql('object');
-      expect(res.body.message).to.eql('User updated');
+      expect(res.body.users.length).to.be.above(0);
       done();
     });
   });
 
   it('adds a new user', function (done) {
-    superagent.post('http://localhost:3000/users')
-    .send({
-      email: 'test@user.com',
-      firstName: 'Jane',
-      lastName: 'Doe',
-      phone: 1234567890})
+    superagent.post(root + '/users')
     .end(function (e, res) {
-      // console.log(res.body);
       expect(e).to.eql(null);
       expect(res.statusCode).to.eql(201);
-      expect(res.body.message).to.eql('User created: Jane');
+      expect(res.body.result).to.eql('1 user created.');
+      var new_id = res.body.new_id;
+      superagent.get(root + '/users/' + new_id)
+      .end(function(e, res) {
+        expect(e).to.eql(null);
+        expect(res.statusCode).to.eql(200);
+        expect(res.body.user.id).to.eql(new_id);
+        done();
+      });
+    });
+  });
+
+  it('gets one user', function (done) {
+    superagent.get(root + '/users/' + id)
+    .end(function (e, res) {
+      expect(e).to.eql(null);
+      expect(res.statusCode).to.eql(200);
+      expect(typeof res.body).to.eql('object');
       done();
     });
   });
-  
+  //
+  // it('updates a user', function (done) {
+  //   superagent.put('http://localhost:3000/users/' + id)
+  //   // .send({
+  //   //   id: id,
+  //   //   firstName: 'test',
+  //   //   lastName: 'Test'})
+  //   .end(function (e, res) {
+  //     // console.log(res.body);
+  //     expect(e).to.eql(null);
+  //     expect(res.statusCode).to.eql(200);
+  //     expect(typeof res.body).to.eql('object');
+  //     expect(res.body.message).to.eql('User updated');
+  //     done();
+  //   });
+  // });
+  //
+
+
   it('removes a user', function(done){
-    superagent.del('http://localhost:3000/users' + id)
-    // .send({
-    //   id: id})
+    superagent.del(root + '/users/' + id)
     .end(function(e, res){
-      // console.log(res.body);
       expect(e).to.eql(null);
       expect(res.statusCode).to.eql(200);
-      expect(res.body.message).to.eql('User removed.');
-      done();
+      expect(res.body.message).to.eql('deleted user ' + id);
+
+      superagent.get(root + '/users/' + id)
+      .end(function(e, res) {
+        expect(e).to.eql(null);
+        expect(res.statusCode).to.eql(404);
+        done();
+      });
     });
   });
 });
