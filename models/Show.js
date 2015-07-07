@@ -33,7 +33,7 @@ Show.updateAllShows = function(client, updates, cb) {
 
   //  iterate over the JSON object to create
   //  a string of updated fields and values to pass to the query
-  for (var key in updates) {  
+  for (var key in updates) {
     if (updates.hasOwnProperty(key)) {
       var update = key + " = " + updates[key] + ", ";
       updateString += update;
@@ -88,7 +88,7 @@ Show.deleteAllShows = function(client, cb) {
 Show.addShow = function (client, show, cb) {
 	var showArr = [ show.title, show.blurb, ];
 	var qStr = "INSERT INTO shows(title, blurb) \
-							VALUES($1, $2)";
+							VALUES($1, $2) RETURNING *";
 	client.query(qStr, showArr, function(err, result) {
 		if (err) {
 			return cb(err);
@@ -161,14 +161,14 @@ Show.deleteShowById = function(client, show_id, cb) {
 	*
 	*	Advanced methods
 	*
-**/	
+**/
 
-//	SELECT a list of currently active shows 
+//	SELECT a list of currently active shows
 //	(ie, 0 <= show.timeslot <= 167)
 Show.getActiveShows = function(client, cb) {
 
 	//	FIX ME: query currently calls only shows where show.timeslot === 167
-	//	see: http://stackoverflow.com/questions/16606357/if-array-contains-value 
+	//	see: http://stackoverflow.com/questions/16606357/if-array-contains-value
 	var qStr = "SELECT * FROM shows \
 				WHERE timeslot && array(SELECT generate_series(0, 167))";
 	var query = client.query(qStr);
@@ -247,7 +247,7 @@ Show.getAllHosts = function(client, cb) {
 }
 
 //	TODO: add additional logic to return -1 if the
-//	query generates no error AND no show (e.g., during 
+//	query generates no error AND no show (e.g., during
 	// the summer or middle ofthe night)
 Show.getShowByTimeslot = function(client, timeslot, cb) {
 	var qStr = "SELECT * FROM shows WHERE timeslot = $1";

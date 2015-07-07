@@ -39,7 +39,7 @@ hosts.route('/')
         done();
 
         if (err) {
-          res.json(500, {error: err.detail});
+          res.json(500, {error: err});
         } else {
           res.json(201, {result: "Added user " + host_id + " to show " + show_id});
         }

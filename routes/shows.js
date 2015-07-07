@@ -25,11 +25,13 @@ shows.route('/')
 
         if (err) {
           res.json(500, {error: err.detail});
+        } else if (result.length === 0) {
+          res.json(404, {error: "No shows found.", shows: result});
         } else {
-  	      res.json(200, {shows: result});
+          res.json(200, {shows: result});
         }
 
-        client.end();	
+        client.end();
   		});	//	end Shows.getAllShows()
   	});	//	end pg.connect
   })
@@ -55,7 +57,12 @@ shows.route('/')
         if (err) {
           res.json(500, {error: err.detail});
         } else {
-   	      res.json(201, {result: result.rowCount + " show created."});   	
+   	      res.json(201,
+             {
+               "result": result.rowCount + " show created.",
+               "new_id": result.rows[0].id
+             }
+          );
         }
 
         client.end();
@@ -124,7 +131,7 @@ shows.route('/:id')
 
         if (!err && result.length > 0) {
           res.json(200, {show: result[0]});
-        } else if (result.length === 0) {
+        } else if (!err) {
         	res.json(404, {error: "show " + show_id + " doesn't exist"});
         } else {
         	res.json(500, {error: err});
@@ -138,27 +145,6 @@ shows.route('/:id')
   //	PUT an update to one show in the table
   .put(function(req, res) {
     res.json(500, {error: 'not configured'});
-   //  pg.connect(db, function(err, client, done) {
-   //    if (err) {
-   //      return res.json(500, {error: err});
-   //    }
-
-   //  	var show_id = req.params.id;
-  	//   var updates = req.body.updates;
-   //    Shows.updateShowById(client, show_id, updates, function(err, result) {
-   //      done();
-
-   //      if (err) {
-   //        res.json(500, err);
-   //      } else {
-   //        res.json(200, result);
-   //        // res.json(200, {user: '/returns ' + id + ' s updated show document'});
-   //      }
-
-   //      client.end();
-   //    });
-   //  });
-  	// // res.json(200, {show: '/returns ' + id + ' s updated show document'});
   })
 
   .delete(function(req, res) {
@@ -205,7 +191,7 @@ shows.get('/:id/playlists', function(req, res) {
       if (err) {
         return res.json(500, {error: err});
       } else if (!err && result && statusCode === 200) {
-        
+
         if (!req.query.limit) {
 
           Shows.getAllPlaylists(client, show_id, function(err, result) {
@@ -218,7 +204,7 @@ shows.get('/:id/playlists', function(req, res) {
             }
           }); //end getPlaylists
         } else {
-          
+
           var limit = parseInt(req.query.limit);
           Shows.getPlaylists(client, show_id, limit, function(err, result) {
             if (err) {
@@ -235,36 +221,52 @@ shows.get('/:id/playlists', function(req, res) {
         return res.json(statusCode, result);
       }
     }); //  end api.get
-  }); 
+  });
 });
 
 //	GET a show's hosts' user objects
-shows.get('/:id/hosts', function(req, res) {
-	pg.connect(db, function(err, client, done) {
-		if (err) {
-			return res.json(500, {error:err});
-		}
+shows.route('/:id/hosts')
+  .get(function(req, res) {
+  	pg.connect(db, function(err, client, done) {
+  		if (err) {
+  			return res.json(500, {error:err});
+  		}
 
-    var show_id = req.params.id;
-		Shows.getHosts(client, show_id, function(err, result) {
-			done();
+      var show_id = req.params.id;
+  		Shows.getHosts(client, show_id, function(err, result) {
+  			done();
 
-      if (!err && result.length > 0) {
-        res.json(200, {hosts: result});
-      } else if (!err) {
-        res.json(404, {error: "show " + show_id + " has no listed hosts"});
-      } else {
-        res.json(500, {error: err});
-      }
+        if (!err && result.length > 0) {
+          res.json(200, {hosts: result});
+        } else if (!err) {
+          res.json(404, {error: "show " + show_id + " has no listed hosts"});
+        } else {
+          res.json(500, {error: err});
+        }
 
-			client.end();
-		});
-	});
-});
+  			client.end();
+  		});
+  	});
+  })
+
+  .post(function(req, res) {
+    pg.connect(db, function(err, client, done) {
+      if (err) return res.json(500, {error: err});
+
+      var show_id = req.params.id;
+      var host_id = req.body.host_id;
+      Shows.addHost(client, show_id, host_id, function(err, result) {
+        done();
+
+        if (err) {
+          res.json(500, {error: err.detail});
+        } else {
+          res.json(201, {result: "Added user " + host_id + " to show " + show_id});
+        }
+
+        client.end();
+      }); //  end Show.
+    }); //  end pg.connect
+  })
 
 module.exports = shows;
-
-
-
-
-
