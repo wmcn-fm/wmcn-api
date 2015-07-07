@@ -5,6 +5,9 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
+var fs = require('fs');
+var marked = require('marked');
+
 var users = require('./routes/users');
 var shows = require('./routes/shows');
 var playlists = require('./routes/playlists');
@@ -26,7 +29,8 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', function(req, res) {
-  res.json(200, 'welcome to wmcn api');
+  var mdFile = fs.readFileSync('./README.md', 'utf8');
+  res.send(marked(mdFile));
 });
 
 app.use('/users', users);
