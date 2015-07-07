@@ -26,8 +26,10 @@ users.route('/')
 
 					if (err) {
 						res.json(500, {error: err});
+					} else if (result.length === 0) {
+						res.json(404, {error: "No users found.", users: result});
 					} else {
-						res.json(200, {users: result});	
+						res.json(200, {users: result});
 					}
 
 					client.end();
@@ -48,7 +50,7 @@ users.route('/')
 
 					client.end();
 				});	//	end Users.get by email
-			}	
+			}
 		}); //  end pg.connect
 	})	//	end .get
 
@@ -59,15 +61,7 @@ users.route('/')
 				return res.json(500, {error: err});
 			}
 
-			var user;
-			if (process.env.NODE_ENV === 'production') {
-				user = req.body.user;
-				console.log('node env produciton!' + user);
-			} else {
-				console.log('nod env not produciton!' + user);
-				user = faker.makeRandomUser();
-			}
-
+			var user = req.body.user;
 			api.get('/users?email=' + user.email, function(err, result, statusCode) {
 				if (err) {
 					return res.json(500, {error: err});
@@ -80,10 +74,10 @@ users.route('/')
 						if (err) {
 							res.json(500, {error: err});
 						} else {
-							res.json(201, 
+							res.json(201,
 								{
 									"result": result.rowCount + " user created.",
-									"new_id": result.rows[0].id
+									"new_user": result.rows[0]
 								}
 							);
 						}
@@ -115,7 +109,7 @@ users.route('/')
 		// 		if (err) {
 		// 			res.json(500, {error: err});
 		// 		} else {
-		// 			res.json(200, {result: result});			
+		// 			res.json(200, {result: result});
 		// 		}
 
 		// 		client.end();
@@ -125,7 +119,7 @@ users.route('/')
 
 	//  DELETE all users
 	.delete(function(req, res) {
-		pg.connect(db, function(err, client, done) {		
+		pg.connect(db, function(err, client, done) {
 			if (err) {
 				return res.json(500, {error: err});
 			}
@@ -159,9 +153,9 @@ users.route('/:id')
 				done();
 
 				if (!err && result.length > 0) {
-					res.json(200, {user: result[0]});	
+					res.json(200, {user: result[0]});
 				} else if (result.length === 0) {
-					res.json(404, {error: "user " + user_id + " doesn't exist"});		
+					res.json(404, {error: "user " + user_id + " doesn't exist"});
 				} else {
 					res.json(500, {error: err});
 				}

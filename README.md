@@ -1,5 +1,4 @@
-# wmcn-api
-[![Build Status](https://travis-ci.org/wmcn-fm/wmcn-api.svg?branch=master)](https://travis-ci.org/wmcn-fm/wmcn-api)
+# wmcn-api [![Build Status](https://travis-ci.org/wmcn-fm/wmcn-api.svg?branch=master)](https://travis-ci.org/wmcn-fm/wmcn-api)
 
 RESTful API server for [WMCN](http://wmcn.fm)
 
@@ -29,13 +28,13 @@ $ node lib/setTables.js
 
 ###Run
 
-```
-$ DEBUG=wmcn-api NODE_ENV=development USER=username PW=devpw npm start
-	# app runs on localhost:3001 w/ nodemon, prints full error stack,
-	# uses local postgres instance
+```shell
+$ DEBUG=wmcn-api USER=username PW=devpw npm run start-dev
+> Express server listening on port 3001 in development mode using test database
+	# all defaults; start-dev uses nodemon
 
-$ sudo NODE_ENV=production USER=username PW=productionpw npm start
-	# app runs on localhost:81, using remote production db
+$ sudo NODE_ENV=production USER=username PW=productionpw PORT=80 DB=production npm start
+	# NODE_ENV, DB, PORT all configurable via process.env
 ```
 
 ## v0.1 documentation

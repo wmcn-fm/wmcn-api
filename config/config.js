@@ -1,44 +1,31 @@
 var s = require('./settings.json');
 
-var dev = {};
-var production = {};
-var env = process.env.NODE_ENV;
+var node_env = process.env.NODE_ENV || 'development';
+var port = process.env.PORT || 3001;    // or 81
+var db = process.env.DB || 'test';      // or production
 var user = process.env.USER;
 var pw = process.env.PW;
 
-function configure(node_env) {
+function configure() {
   var env = {};
-  var api_root_url;
-  var db;
-
-  var api_version = s.api.v;
-  var db_stem = s.db.stem;
-
-  if (node_env !== 'production') {
-    api_root_url = s.api.stem + s.api.url.dev + ":" + s.api.port.dev;
-    db = db_stem + user + ":" + pw + "@" + s.db.host.dev + '/' + s.db.name.dev;
-  } else {
-    api_root_url = s.api.stem + s.api.url.dev + ":" + s.api.port.dev;
-    db = db_stem + user + ":" + pw + "@" + s.db.host.dev + '/' + s.db.name.dev;
-    // api_root_url = s.api.stem + s.api.url.production + '/v' + api_version + '/';
-    // db = db_stem + user + ":" + pw + "@" + s.db.host.production + '/' + s.db.name.production;
-  }
-
-  env.api_root_url = api_root_url;
-  env.db = db;
+  env.node_env = node_env;
+  env.port = port;
+  env.dbMode = db;
+  env.db = makeDbUrl(db);
+  env.api_root_url = 'http://localhost:' + port;
   return env;
 }
 
-module.exports = function(){
-  switch(env){
-    case 'development':
-      return configure('development');
 
-    case 'production':
-      return configure('production');
-
-    default:
-      return configure('development');
+function makeDbUrl(db) {
+  var db_stem = s.db.stem;
+  if (db === 'test') {
+    return db_stem + user + ":" + pw + "@" + s.db.host.dev + '/' + s.db.name.dev;
+  } else {
+    return db_stem + user + ":" + pw + "@" + s.db.host.production + '/' + s.db.name.production;
   }
-};
+}
 
+module.exports = function(){
+  return configure();
+};

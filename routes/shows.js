@@ -44,13 +44,7 @@ shows.route('/')
   		}
 
 
-      var show;
-      if (process.env.NODE_ENV === 'production') {
-        show = req.body.show;
-      } else {
-        show = faker.makeRandomShow();
-      }
-
+      var show = req.body.show;
       Shows.addShow(client, show, function(err, result) {
         done();
 
@@ -60,7 +54,7 @@ shows.route('/')
    	      res.json(201,
              {
                "result": result.rowCount + " show created.",
-               "new_id": result.rows[0].id
+               "new_show": result.rows[0]
              }
           );
         }

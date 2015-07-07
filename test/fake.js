@@ -18,12 +18,7 @@ fake.makeRandomShow = function makeRandomShow() {
 
   var show = {};
   show.title = faker.lorem.words().toString();
-  show.timeslot = [];
   show.blurb = '';
-
-  for (var i=0; i<getRandomInt(1, 8); i++) {
-    show.timeslot.push(getRandomInt(0, 167))
-  }
   for (var i=0; i<getRandomInt(2, 8); i++) {
     show.blurb += faker.lorem.sentence();
   }
