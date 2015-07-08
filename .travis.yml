@@ -1,9 +1,8 @@
 language: node_js
 node_js: stable
+services: postgresql
 before_script:
-- psql -c 'create database wmcn_test;' -U will && node lib/setTables.js
+  - ./setup-db.sh
 env:
   matrix:
-  - ID=1 USER=will
-  global:
-    secure: EXK1QxhFanlzWDjGE2nSXe0DaYyqPc2myKgBItIMBt1MZN0c7ieJNW3t546CId1LHEPIo3GaxyX1NCAr/Jc4rseEhZAbnPwPgUiF0qLFvsc1F/DAXXqPXc4QnyL67kJ8JmWsSAukY7Y/D1yVWSPy+8Mnaawv3O2pUr+BGmKO/InZhHTWL+irST9bmWf6s9e9awzdPmTL2MEmwM3D0cqC/CNSIED1PRhay8RjOpwQY9Y+bmstgYFdVD9IMFpXQeUhQfL5jljVDuAibk+faDAZzmhOIlwePIdFW0VIXK4VzC9hja7MgJ2U4aSUItbnjCRFvixWKgQ8P9LGdaQcbDVV5f/Hy/jXSIWFjB6GPTpHkXdi6pLr1rPXYiV/KW336xVhBk4V+U3jLx53dX9rnybqtc6rY8AW/mkB83GJy/yEP6g9J7S/LTAe+SBGI1MiMlh7/XZhNws2/TsZcsjIkqnMeiHH2A2Xehl+Xg6FT3MzqgeiBWZST8V62VWeRfIwMhfHWpRamwSezPD5SGwaS24y7CHpXdeKfh00i772tbrULIdz92FoeAGQ+NO5CiinD/GmIzw/gFwnlu1IbvLHTsjw8XEY98GTEuKhhHx4cNsnaaFzTnHQxMEczj4kWhKdD+9bRgKXMaLcYYQ89MXiu1680UbGC0yev1dZ7p+oqH41u/E=
+  - NODE_ENV=development

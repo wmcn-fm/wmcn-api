@@ -18,10 +18,9 @@ Development/production  settings are accessible at `config/settings.json`, and c
 
 In dev mode, set up the database locally:
 
-```
-$ postgres /usr/local/var/postgres
-$ createdb wmcn_test	# in a new window
-$ node lib/setTables.js
+```shell
+$ postgres /usr/local/var/postgres	# in its own terminal window
+$ ./setup-db.sh
 ```
 
 `dropdb wmcn_test` clears the database (remember to set up the tables again too!)
@@ -30,10 +29,11 @@ $ node lib/setTables.js
 
 ```shell
 $ DEBUG=wmcn-api USER=username PW=devpw npm run start-dev
-> Express server listening on port 3001 in development mode using test database
+>	Express server listening on port 3001 in development mode using test database
 	# all defaults; start-dev uses nodemon
 
 $ sudo NODE_ENV=production USER=username PW=productionpw PORT=80 DB=production npm start
+>	wmcn-api Express server listening on port 80 in production mode using production database
 	# NODE_ENV, DB, PORT all configurable via process.env
 ```
 
