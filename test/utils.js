@@ -20,6 +20,17 @@ utils.getValid = function(table, cb) {
   });
 }
 
+utils.randomProperty = function (type) {
+    var userKeys = ['first_name', 'last_name', 'phone',
+                'email', 'hash', 'grad_year', 'mac_id', 'iclass'];
+    var showKeys = ['title', 'blurb'];
 
+    switch (type) {
+      case 'user':
+        return userKeys[userKeys.length * Math.random() << 0];
+      case 'show':
+        return showKeys[showKeys.length * Math.random() << 0];
+    }
+};
 
 module.exports = utils;

@@ -5,9 +5,7 @@ var config = require('../config/config')();
 var db = config.db;
 var Shows = require('../models/Show');
 var api = require('../models/api');
-
-//	for testing/dev only:
-var faker = require('../test/fake');
+var utils = require('./route-utils');
 
 
 shows.route('/')
@@ -43,24 +41,32 @@ shows.route('/')
   			return res.json(500, {error: err});
   		}
 
-
       var show = req.body.show;
-      Shows.addShow(client, show, function(err, result) {
-        done();
-
-        if (err) {
-          res.json(500, {error: err.detail});
-        } else {
-   	      res.json(201,
-             {
-               "result": result.rowCount + " show created.",
-               "new_show": result.rows[0]
-             }
-          );
+      if (!show) {
+        res.json(403, {error: 'show object is ' + show});
+      } else {
+        var missingColumns = utils.hasMissingColumns(show, 'show');
+        if (missingColumns) {
+          return res.json(403, {error: missingColumns + ' field is missing'});
         }
 
-        client.end();
-      });   //  end Shows.addShow
+        Shows.addShow(client, show, function(err, result) {
+          done();
+
+          if (err) {
+            res.json(500, {error: err.detail});
+          } else {
+     	      res.json(201,
+               {
+                 "result": result.rowCount + " show created.",
+                 "new_show": result.rows[0]
+               }
+            );
+          }
+
+          client.end();
+        });   //  end Shows.addShow
+      }
   	});	//	end pg.connect
   })
 

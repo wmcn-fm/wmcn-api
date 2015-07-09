@@ -3,6 +3,7 @@ var expect = require('expect.js');
 var config = require('../config/config')();
 var root = config.api_root_url;
 var fake = require('./fake');
+var utils = require('./utils');
 
 describe('show route', function() {
   var numShows;
@@ -85,6 +86,75 @@ describe('show route', function() {
         });
       });
     }); //  end remove new show
+
+    describe('with missing data', function() {
+      var badShow;
+      before(function(done) {
+        badShow = fake.makeRandomShow();
+        done();
+      });
+      it('should catch undefined show', function(done) {
+        var badShow;
+        superagent.post(root + '/shows')
+        .send({show: badShow})
+        .end(function(e, res) {
+          expect(e).to.eql(null);
+          expect(res.body).to.only.have.key('error');
+          expect(res.body.error).to.eql('show object is ' + badShow);
+          expect(res.statusCode).to.equal(403);
+          done();
+        });
+      }); //  end undefined
+
+      it('should catch any missing column', function(done) {
+        var randomProp = utils.randomProperty('show');
+        badShow[randomProp] = null;
+        superagent.post(root + '/shows')
+        .send({show: badShow})
+        .end(function(e, res) {
+          expect(e).to.eql(null);
+          expect(res.statusCode).to.equal(403);
+          expect(res.body).to.only.have.key('error');
+          expect(res.body.error).to.eql(randomProp + ' field is missing');
+          done();
+        });
+      });  // end catch missing col
+
+    }); //  end submitting improper show
+
+
   }); //  end creating a new show
+
+  // it("should get one show's hosts", function(done){
+  //   utils.getValid('shows', function(err, showId) {
+  //     if (err) return console.log(err);
+  //     superagent.get('/shows/' + showId + '/hosts')
+  //     .end(function(e, res){
+  //       expect(e).to.eql(null);
+  //       expect(res.statusCode).to.eql(200);
+  //       expect(typeof res.body).to.eql('object');
+  //       done();
+  //     });
+  //   });
+  // });
+  //
+  // it("adds a user as a show's host", function(done) {
+  //   utils.getValid('shows', function(err, showId) {
+  //     if (err) return console.log(err);
+  //     utils.getValid('users', function(err, host_id) {
+  //       if (err) return console.log(err);
+  //
+  //       superagent.post('/shows/' + showId + '/hosts')
+  //       .send({host_id: host_id})
+  //       .end(function(e, res) {
+  //         expect(e).to.eql(null);
+  //         expect(res.statusCode).to.equal(201);
+  //         expect(res.body.result).to.eql("Added user " + host_id + "to show" + newerId);
+  //         done();
+  //       });
+  //
+  //     });
+  //   });
+  // });
 
 }); //  end show route

@@ -5,9 +5,7 @@ var config = require('../config/config')();
 var db = config.db;
 var Users = require('../models/User');
 var api = require('../models/api');
-
-//  for testing/development only:
-var faker = require('../test/fake');
+var utils = require('./route-utils');
 
 
 users.route('/')
@@ -62,34 +60,43 @@ users.route('/')
 			}
 
 			var user = req.body.user;
-			api.get('/users?email=' + user.email, function(err, result, statusCode) {
-				if (err) {
-					return res.json(500, {error: err});
-
-				//	if statusCode = 404, user doesn't exist
-				}	else if (!err && result && statusCode === 404) {
-					Users.addUser(client, user, function(err, result) {
-						done();
-
-						if (err) {
-							res.json(500, {error: err});
-						} else {
-							res.json(201,
-								{
-									"result": result.rowCount + " user created.",
-									"new_user": result.rows[0]
-								}
-							);
-						}
-
-						client.end();
-					});   //  end Users.addUser
-				} else if (!err && result && statusCode === 200) {
-					res.json(403, {error: "user with email " + result.user.email + " already exists"});
-				} else {
-					return res.json(statusCode, result);
+			if (!user) {
+				res.json(403, {error: 'user object is ' + user})
+			} else {
+				var missingColumns = utils.hasMissingColumns(user, 'user');
+				if (missingColumns) {
+					return res.json(403, {error: missingColumns + ' field is missing'});
 				}
-			});	//	end api.get
+
+				api.get('/users?email=' + user.email, function(err, result, statusCode) {
+					if (err) {
+						return res.json(500, {error: err});
+
+					//	if statusCode = 404, user doesn't exist
+					}	else if (!err && result && statusCode === 404) {
+						Users.addUser(client, user, function(err, result) {
+							done();
+
+							if (err) {
+								res.json(500, {error: err});
+							} else {
+								res.json(201,
+									{
+										"result": result.rowCount + " user created.",
+										"new_user": result.rows[0]
+									}
+								);
+							}
+
+							client.end();
+						});   //  end Users.addUser
+					} else if (!err && result && statusCode === 200) {
+						res.json(403, {error: "user with email " + result.user.email + " already exists"});
+					} else {
+						return res.json(statusCode, result);
+					}
+				});	//	end api.get
+			}
 		}); //  end pg.connect
 	})
 

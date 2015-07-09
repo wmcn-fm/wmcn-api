@@ -3,6 +3,7 @@ var expect = require('expect.js');
 var config = require('../config/config')();
 var root = config.api_root_url;
 var fake = require('./fake');
+var utils = require('./utils');
 
 describe('user route', function() {
   var numUsers;
@@ -85,6 +86,42 @@ describe('user route', function() {
         });
       });
     }); //  end remove new user
+
+    describe('with missing data', function() {
+      var badUser;
+      before(function(done) {
+        badUser = fake.makeRandomUser();
+        done();
+      });
+      it('should catch undefined user', function(done) {
+        var badUser;
+        superagent.post(root + '/users')
+        .send({user: badUser})
+        .end(function(e, res) {
+          expect(e).to.eql(null);
+          expect(res.body).to.only.have.key('error');
+          expect(res.body.error).to.eql('user object is ' + badUser);
+          expect(res.statusCode).to.equal(403);
+          done();
+        });
+      }); //  end undefined
+
+      it('should catch any missing column', function(done) {
+        var randomProp = utils.randomProperty('user');
+        badUser[randomProp] = null;
+        superagent.post(root + '/users')
+        .send({user: badUser})
+        .end(function(e, res) {
+          expect(e).to.eql(null);
+          expect(res.statusCode).to.equal(403);
+          expect(res.body).to.only.have.key('error');
+          expect(res.body.error).to.eql(randomProp + ' field is missing');
+          done();
+        });
+      });  // end catch missing col
+
+    }); //  end submitting improper user
+
   }); //  end creating a new user
-  
+
 }); //  end user route
