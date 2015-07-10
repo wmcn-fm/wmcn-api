@@ -87,7 +87,7 @@ describe('show route', function() {
       });
     }); //  end remove new show
 
-    describe('with missing data', function() {
+    describe('error handler', function() {
       var badShow;
       before(function(done) {
         badShow = fake.makeRandomShow();
@@ -120,7 +120,32 @@ describe('show route', function() {
         });
       });  // end catch missing col
 
-    }); //  end submitting improper show
+      it('should catch duplicate shows', function(done) {
+        var newShow = fake.makeRandomShow();
+        var origTitle = newShow.title;
+
+        superagent.post(root + '/shows')
+        .send({show: newShow})
+        .end(function (e, res) {
+          expect(e).to.eql(null);
+          expect(res.statusCode).to.equal(201);
+          expect(res.body.new_show.title).to.eql(origTitle);
+
+          superagent.post(root + '/shows')
+          .send({show: {title: origTitle, blurb: 'blah'} })
+          .end(function(e, res) {
+            expect(e).to.eql(null);
+            expect(res.statusCode).to.equal(500);
+            expect(res.body).to.only.have.key('error');
+            expect(res.body.error).to.eql('Key (title)=(' + origTitle + ') already exists.');
+            done();
+          });
+
+
+        });
+      }); //  end catch duplicate
+
+    }); //  end error handler show
 
 
   }); //  end creating a new show

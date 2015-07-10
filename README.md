@@ -207,9 +207,8 @@ $ sudo NODE_ENV=production USER=username PW=productionpw PORT=80 DB=production n
 			- **Status code**: `201`
 			- **Response body**: `{"result":"1 show created."}`
 		- **Error**:
-			- **Status code**: `403`
+			- **Status code**: `500`
 			- **Response body**: `{error: show <title> already exists}`
-			- **NOTE**: improper error handling (doesn't check to make sure show exists) - see [issue 8](https://github.com/wmcn-fm/wmcn-api/issues/8)
 
 - **Method**: `PUT`
 	- **NOTE**: in development; see [issue #2](https://github.com/wmcn-fm/wmcn-api/issues/2)
