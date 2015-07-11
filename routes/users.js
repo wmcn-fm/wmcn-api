@@ -46,7 +46,6 @@ users.route('/')
 						res.json(500, {error: err});
 					}
 
-					client.end();
 				});	//	end Users.get by email
 			}
 		}); //  end pg.connect
@@ -71,7 +70,7 @@ users.route('/')
 				api.get('/users?email=' + user.email, function(err, result, statusCode) {
 					if (err) {
 						return res.json(500, {error: err});
-
+						done();
 					//	if statusCode = 404, user doesn't exist
 					}	else if (!err && result && statusCode === 404) {
 						Users.addUser(client, user, function(err, result) {
@@ -88,12 +87,13 @@ users.route('/')
 								);
 							}
 
-							client.end();
 						});   //  end Users.addUser
 					} else if (!err && result && statusCode === 200) {
-						res.json(403, {error: "user with email " + result.user.email + " already exists"});
+						return res.json(403, {error: "user with email " + result.user.email + " already exists"});
+						done();
 					} else {
 						return res.json(statusCode, result);
+						done();
 					}
 				});	//	end api.get
 			}

@@ -43,10 +43,12 @@ shows.route('/')
 
       var show = req.body.show;
       if (!show) {
+        done();
         res.json(403, {error: 'show object is ' + show});
       } else {
         var missingColumns = utils.hasMissingColumns(show, 'show');
         if (missingColumns) {
+          done();
           return res.json(403, {error: missingColumns + ' field is missing'});
         }
 
@@ -63,8 +65,6 @@ shows.route('/')
                }
             );
           }
-
-          client.end();
         });   //  end Shows.addShow
       }
   	});	//	end pg.connect
