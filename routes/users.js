@@ -4,6 +4,7 @@ var pg = require('pg');
 var config = require('../config/config')();
 var db = config.db;
 var Users = require('../models/User');
+var Shows = require('../models/Show');
 var api = require('../models/api');
 var utils = require('./route-utils');
 
@@ -230,6 +231,75 @@ users.route('/:id')
 			});	//end api.get
 		});	//	end pg.connect
 	});
+
+users.route('/:id/shows')
+	.get(function(req, res) {
+		pg.connect(db, function(err, client, done) {
+			if (err) {
+				done();
+				return res.json(500, {error: err});
+			}
+
+			var user_id = req.params.id;
+				Users.getShows(client, user_id, function(err, result) {
+					done();
+					if (!err && result.length > 0) {
+						res.json(200, {shows: result});
+					} else if (!err) {
+						res.json(404, {error: "User " + user_id + " hasn't hosted any shows"});
+					} else {
+						res.json(500, {error: err});
+					}
+				});
+
+		});	//	end pg.connect
+	})	//	end .get
+
+	.post(function(req, res) {
+		pg.connect(db, function(err, client, done) {
+			if (err) {
+				done();
+				return res.json(500, {error: err});
+			}
+
+			var user_id = req.params.id;
+			var show_id = req.body.show_id;
+			Shows.addHost(client, show_id, user_id, function(err, result) {
+				done();
+
+				if (!err && result) {
+					res.json(201, {result: "Added user " + user_id + ' to show ' + show_id});
+				} else if (!err) {
+					res.json(404, {result: result});
+				} else {
+					res.json(500, {error: err.detail});
+				}
+			});	//	end Show.addHost
+		});	//	end pg.connect
+	})	//	end .post
+
+	.delete(function(req, res) {
+		pg.connect(db, function (err, client, done) {
+      if (err) {
+        done();
+        return res.json(500, {error: err});
+      }
+
+			var user_id = req.params.id;
+			var show_id = req.body.show_id;
+			Shows.removeHost(client, show_id, user_id,  function(err, result) {
+				done();
+
+				if (err) {
+					res.json(500, {error: err});
+				} else {
+					res.json(200, {result: "removed user " + user_id + " from show " + show_id});
+				}
+			});	//	end Show.removeHost
+		});	//	end pg.connect
+
+	});	//	end delete
+
 
 
 module.exports = users;

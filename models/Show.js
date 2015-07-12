@@ -1,6 +1,7 @@
 var forEachAsync = require('forEachAsync').forEachAsync;
-var Show = {};
 var User = require('./User');
+var Show = {};
+
 
 /**
 	*
@@ -218,6 +219,22 @@ Show.getHosts = function(client, show_id, cb) {
 
 		}
 	});  //  end client.query
+}
+
+Show.deleteAllHosts = function(client, cb) {
+	var query = client.query("DELETE FROM hosts");
+
+  query.on('error', function(err) {
+    cb(err);
+  });
+
+  query.on('row', function(row, result) {
+    result.addRow(row);
+  });
+
+  query.on('end', function(result) {
+    cb(null, result);
+  });
 }
 
 Show.addHost = function(client, show_id, host_id, cb) {

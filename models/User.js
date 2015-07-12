@@ -1,4 +1,5 @@
-var sql = require('sql');
+var forEachAsync = require('forEachAsync').forEachAsync;
+var Show = require('./Show');
 var Users = {};
 
 /**
@@ -153,6 +154,32 @@ Users.deleteUserById = function(client, user_id, cb) {
     } else {
       cb(null, result.rowCount);
     }
+  });
+}
+
+Users.getShows = function(client, user_id, cb) {
+  var query = "SELECT * FROM hosts WHERE user_id = $1";
+  client.query(query, [user_id], function(err, result) {
+    if (err) return cb(err);
+    // cb(null, result.rows);
+
+    var sids = [];
+    for (var rel in result.rows) {
+      sids.push(result.rows[rel].show_id);
+    }
+
+    var shows = [];
+    forEachAsync(sids, function(next, show_id, i, array) {
+      Show.getShowById(client, show_id, function(err, result) {
+        if (err) return cb(err);
+
+        shows.push(result[0]);
+        next();
+      });
+    }).then(function() {
+      cb(null, shows);
+    });
+
   });
 }
 

@@ -27,47 +27,22 @@ hosts.route('/')
     }); //  end pg.connect
   }) //  end .get
 
-  .post(function(req, res) {
-    pg.connect(db, function (err, client, done) {
-      if (err) {
-        return res.json(500, {error: err});
-      }
-
-      var show_id = req.body.show_id;
-      var host_id = req.body.user_id;
-      Show.addHost(client, show_id, host_id, function(err, result) {
-        done();
-
-        if (err) {
-          res.json(500, {error: err});
-        } else {
-          res.json(201, {result: "Added user " + host_id + " to show " + show_id});
-        }
-
-        client.end();
-      }); //  end Show.
-    }); //  end pg.connect
-  })  //  end .post
-
   .delete(function(req, res) {
     pg.connect(db, function (err, client, done) {
       if (err) {
+        done();
         return res.json(500, {error: err});
       }
 
-      var show_id = req.body.show_id;
-      var host_id = req.body.user_id;
-      Show.removeHost(client, show_id, host_id,  function(err, result) {
+      Show.deleteAllHosts(client, function(err, result) {
         done();
 
-        if (err) {
-          res.json(500, {error: err});
+        if (!err && result) {
+          res.json(200, {result: "deleted " + result.rowCount + " hosts"});
         } else {
-          res.json(200, {result: "removed user " + host_id + " from show " + show_id});
+          res.json(500, {error: err});
         }
-
-        client.end();
-      }); //  end Show.
+      }); //  end deleteHosts
     }); //  end pg.connect
   }); //  end .delete
 

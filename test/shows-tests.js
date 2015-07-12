@@ -6,9 +6,12 @@ var fake = require('./fake');
 var utils = require('./utils');
 
 describe('show route', function() {
-  var numShows;
 
   before(function(done) {
+    superagent.del(root + '/hosts')
+    .end(function(e, res) {
+      if (e) return console.log(e);
+    });
     superagent.del(root + '/shows')
     .end(function(e, res) {
       if (e) return console.log(e);
@@ -23,7 +26,6 @@ describe('show route', function() {
       expect(res.statusCode).to.equal(404);
       expect(res.body.error).to.equal('No shows found.');
       expect(res.body.shows).to.be.empty();
-      numShows = res.body.shows.length;
       done();
     });
   }); //  end empty table
@@ -65,7 +67,7 @@ describe('show route', function() {
         expect(e).to.eql(null);
         expect(res.body).to.not.contain('error');
         expect(res.statusCode).to.equal(200);
-        expect(res.body.shows.length).to.equal(numShows + 1);
+        expect(res.body.shows.length).to.equal(1);
         expect(res.body.shows[0]).to.eql(newShow);
         done();
       });

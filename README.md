@@ -37,6 +37,12 @@ $ sudo NODE_ENV=production USER=username PW=productionpw PORT=80 DB=production n
 	# NODE_ENV, DB, PORT all configurable via process.env
 ```
 
+###Test
+
+```shell
+npm test
+```
+
 ## v0.1 documentation
 
 ###Routes
@@ -154,7 +160,26 @@ $ sudo NODE_ENV=production USER=username PW=productionpw PORT=80 DB=production n
 			- **Description**: JSON object `shows`, an array of show rows
 		- **Error**:
 			- **Status code**: `404`
-			- **Response body**: `{error: user <id> doesn't exist.}`
+			- **Response body**: `{error: user <id> hasn't hosted any shows}`
+
+- **Method**: `POST`
+	- **Description**: add show `show_id` to `user_id`'s list of shows
+	- **Request params**: `id`: user id
+	- **Request body**: `show_id` (_required_): valid show id;
+	- **Response**:
+		- **Success**:
+			- **Status code**: `201`
+			- **Response body**: `{result: Added user <user_id> to show <show_id>}`
+
+- **Method**: `DELETE`
+	- **Description**: remove a user as a show's host
+	- **Request params**: `id`: user id
+	- **Request body**: `show_id` (_required_): valid show id;
+	- **Response**:
+		- **Success**:
+			- **Status code**: `200`
+			- **Response body**: `{result: removed user <user_id> from show <show_id>}`
+
 
 ##### <a name="users-shows-current">`/users/:id/shows/current`</a>
 
@@ -523,35 +548,14 @@ $ sudo NODE_ENV=production USER=username PW=productionpw PORT=80 DB=production n
 			- **Status code**: `500`
 			- **Response body**: `{error: "..."}`
 
-- **Method**: `POST`
-	- **Description**: add one show-user relationship to the schedule
-	- **Request params**: *none*
-	- **Request body**: `rel` object containing:
-		- **required**:
-			- `user_id`: valid user id number; `show_id`: valid show id number
-	- **Response**:
-		- **Success**:
-			- **Status code**: `201`
-			- **Response body**: `{"result":"1 relationship added to the table."}`
-		- **Error**:
-			- **Status code**: `403`
-			- **Response body**: `{error: 'User <user id> already hosts show <show_id>'}`
-			- **NOTE**: improper error handling; see [issue #13](https://github.com/wmcn-fm/wmcn-api/issues/13)
-
-- **Method**: `PUT`
-	- **NOTE**: in development; see [issue #2](https://github.com/wmcn-fm/wmcn-api/issues/2)
-
 - **Method**: `DELETE`
-	- **Description**: remove a host from a show
+	- **Description**: delete the hosts table
 	- **Request params**: *none*
-	- **Request body**: `show_id`: valid show id number [required]; `user_id`: valid user id number [required];
 	- **Response**:
 		- **Success**:
 			- **Status code**: `200`
-			- **Response body**: `{result: "removed user <user_id> from show <show_id>"}`
-		- **Error**:
-			- **Status code**: `500`
-			- **Response body**: `{error: "..."}`
+			- **Response body**: `{"result":"deleted XXX hosts"}`
+		
 
 ####Articles
 ##### <a name="articles">`/articles`</a>

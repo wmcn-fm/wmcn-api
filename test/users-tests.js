@@ -6,9 +6,12 @@ var fake = require('./fake');
 var utils = require('./utils');
 
 describe('user route', function() {
-  var numUsers;
 
   before(function(done) {
+    superagent.del(root + '/hosts')
+    .end(function(e, res) {
+      if (e) return console.log(e);
+    });
     superagent.del(root + '/users')
     .end(function(e, res) {
       if (e) return console.log(e);
@@ -23,7 +26,6 @@ describe('user route', function() {
       expect(res.statusCode).to.equal(404);
       expect(res.body.error).to.equal('No users found.');
       expect(res.body.users).to.be.empty();
-      numUsers = res.body.users.length;
       done();
     });
   }); //  end empty table
@@ -65,7 +67,7 @@ describe('user route', function() {
         expect(e).to.eql(null);
         expect(res.body).to.not.contain('error');
         expect(res.statusCode).to.equal(200);
-        expect(res.body.users.length).to.equal(numUsers + 1);
+        expect(res.body.users.length).to.equal(1);
         expect(res.body.users[0]).to.eql(newUser);
         done();
       });
@@ -123,5 +125,114 @@ describe('user route', function() {
     }); //  end submitting improper user
 
   }); //  end creating a new user
+
+  describe('referencing shows', function(done) {
+    var user;
+    var show1;
+    var show2;
+
+    before(function(done) {
+      user = fake.makeRandomUser();
+      show1 = fake.makeRandomShow();
+      show2 = fake.makeRandomShow();
+
+      superagent.post(root + '/shows').send({show: show1})
+      .end(function(e, res) {
+        if (e) return console.log(e);
+        show1 = res.body.new_show;
+      });
+
+      superagent.post(root + '/shows').send({show: show2})
+      .end(function(e, res) {
+        if (e) return console.log(e);
+        show2 = res.body.new_show;
+      });
+
+      superagent.post(root + '/users').send({user: user})
+      .end(function(e, res) {
+        if (e) return console.log(e);
+        user = res.body.new_user;
+
+        done();
+      });
+  }); //  end before
+
+    it('should initialize empty', function(done) {
+      superagent.get(root + '/users/' + user.id + '/shows')
+      .end(function(e, res) {
+        expect(e).to.eql(null);
+        expect(res.statusCode).to.equal(404);
+        expect(res.body.error).to.equal("User " + user.id + " hasn't hosted any shows");
+        done();
+      });
+    }); //  end initialize empty
+
+    it('should add a show', function(done) {
+      superagent.post(root + '/users/' + user.id + '/shows')
+      .send({show_id: show1.id })
+      .end(function(e, res) {
+        expect(e).to.eql(null);
+        expect(res.statusCode).to.equal(201);
+        expect(res.body.result).to.equal('Added user ' + user.id + ' to show ' + show1.id);
+        done();
+      });
+    }); //  end add show
+
+    it('should retrieve the new show', function(done) {
+      superagent.get(root + '/users/' + user.id + '/shows')
+      .end(function(e, res) {
+        expect(e).to.eql(null);
+        expect(res.statusCode).to.equal(200);
+        expect(res.body).to.only.have.key('shows');
+        expect(res.body.shows.length).to.equal(1);
+        expect(res.body.shows[0]).to.eql(show1);
+        done();
+      });
+    }); //  end retrieve new show
+
+    it('should add another show', function(done) {
+      superagent.post(root + '/users/' + user.id + '/shows')
+      .send({show_id: show2.id})
+      .end(function(e, res) {
+        expect(e).to.eql(null);
+        expect(res.statusCode).to.equal(201);
+        expect(res.body.result).to.equal('Added user ' + user.id + ' to show ' + show2.id);
+
+        superagent.get(root + '/users/' + user.id + '/shows')
+        .end(function(e, res) {
+          expect(e).to.eql(null);
+          expect(res.statusCode).to.equal(200);
+          expect(res.body).to.only.have.key('shows');
+          expect(res.body.shows.length).to.equal(2);
+          expect(res.body.shows[1]).to.eql(show2);
+          done();
+        });
+      });
+    }); //  end add another show
+
+    it('should delete the first show', function(done) {
+      superagent.del(root + '/users/' + user.id + '/shows')
+      .send({show_id: show1.id})
+      .end(function(e, res) {
+        expect(e).to.eql(null);
+        expect(res.statusCode).to.equal(200);
+        expect(res.body.result).to.equal("removed user " + user.id + " from show " + show1.id);
+        done();
+      });
+    }); //  end delete first
+
+    it('should only contain the second show', function(done) {
+      superagent.get(root + '/users/' + user.id + '/shows')
+      .end(function(e, res) {
+        expect(e).to.eql(null);
+        expect(res.statusCode).to.equal(200);
+        expect(res.body).to.only.have.key('shows');
+        expect(res.body.shows.length).to.equal(1);
+        expect(res.body.shows[0]).to.eql(show2);
+        done();
+      });
+    })
+
+  });  // end referencing shows
 
 }); //  end user route
