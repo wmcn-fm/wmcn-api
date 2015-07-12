@@ -2,7 +2,7 @@ language: node_js
 node_js: stable
 services: postgresql
 before_script:
-  - sh ./setup-db.sh
+  - npm run deploy
 env:
   matrix:
-  - NODE_ENV=development
+  - NODE_ENV=production

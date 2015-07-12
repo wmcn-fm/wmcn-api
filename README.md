@@ -1,6 +1,6 @@
 # wmcn-api [![Build Status](https://travis-ci.org/wmcn-fm/wmcn-api.svg?branch=master)](https://travis-ci.org/wmcn-fm/wmcn-api)
 
-RESTful API server for [WMCN](http://wmcn.fm)
+> RESTful API server for [WMCN.fm](http://wmcn.fm)
 
 ## Setup
 
@@ -12,25 +12,26 @@ $ cd wmcn-api/
 $ npm install
 ```
 
-###Configure
-Development/production  settings are accessible at `config/settings.json`, and configured in
-`config/config.js` depending on the node environment.
-
-In dev mode, set up the database locally:
+###Build
+With postgres running:
 
 ```shell
-$ postgres /usr/local/var/postgres	# in its own terminal window
-$ ./setup-db.sh
+	npm run build
+		#	creates database and sets the tables
 ```
-
-`dropdb wmcn_test` clears the database (remember to set up the tables again too!)
+`dropdb wmcn_test` to clear the database
 
 ###Run
 
 ```shell
-$ DEBUG=wmcn-api USER=username PW=devpw npm run start-dev
+#	one-liner:
+	npm run deploy
+		# builds the db and serves the app on default port (3001) using forever
+
+#	otherwise...
+$ DEBUG=wmcn-api USER=username PW=devpw npm run dev
 >	Express server listening on port 3001 in development mode using test database
-	# all defaults; start-dev uses nodemon
+	# all defaults; dev uses nodemon
 
 $ sudo NODE_ENV=production USER=username PW=productionpw PORT=80 DB=production npm start
 >	wmcn-api Express server listening on port 80 in production mode using production database
@@ -38,7 +39,7 @@ $ sudo NODE_ENV=production USER=username PW=productionpw PORT=80 DB=production n
 ```
 
 ###Test
-
+With the app running:
 ```shell
 npm test
 ```
@@ -555,7 +556,7 @@ npm test
 		- **Success**:
 			- **Status code**: `200`
 			- **Response body**: `{"result":"deleted XXX hosts"}`
-		
+
 
 ####Articles
 ##### <a name="articles">`/articles`</a>
