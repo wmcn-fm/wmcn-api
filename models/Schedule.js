@@ -1,17 +1,26 @@
+var forEachAsync = require('forEachAsync').forEachAsync;
 var Show = require('./Show');
 var Schedule = {};
 
 Schedule.getSchedule = function(client, cb) {
-  var query = client.query("SELECT * FROM schedule");
-  query.on('error', function(err) {
-    cb(err);
-    })
-    .on('row', function(row, result) {
-    result.addRow(row);
-    })
-    .on('end', function(result) {
-      cb(null, result.rows);
-  });
+  
+  var schedule = new Array(168);
+  forEachAsync(schedule, function(next, e, i, arr) {
+    Schedule.getShowAtTime(client, i, function(err, show) {
+      if (err) return cb(err);
+
+      schedule[i] = {timeslot: i};
+      if (show !== null) {
+        schedule[i]['show'] = show;
+      } else {
+        schedule[i]['show'] = 'automator';
+      }
+
+      next();
+    });
+  }).then(function() {
+    cb(null, schedule);
+  })
 }
 
 Schedule.deleteSchedule = function(client, cb) {

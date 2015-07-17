@@ -117,8 +117,6 @@ schedule.route('/:timeslot')
       Schedule.deleteShowAtTime(client, timeslot, function(err, result) {
         done();
 
-        console.log(result);
-
         if (!err && result) {
           res.json(200, {result: "cleared slot " + timeslot});
         } else if (!err) {

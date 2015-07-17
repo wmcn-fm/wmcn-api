@@ -23,18 +23,20 @@ describe('schedule', function() {
     });
   }); //  end before
 
-  it('should initially get an empty table', function(done) {
+  it('should initially be blank', function(done) {
     superagent.get(root + '/schedule')
     .end(function (e,res) {
       expect(e).to.eql(null);
-      expect(res.statusCode).to.equal(404);
-      expect(res.body).to.only.have.key('error');
-      expect(res.body.error).to.equal('No scheduled shows');
+      expect(res.statusCode).to.equal(200);
+      expect(res.body).to.only.have.key('schedule');
+      for (var time in res.body.schedule) {
+        expect(res.body.schedule[time].show).to.equal('automator');
+      }
       done();
     });
   });
 
-  describe('posting a show', function() {
+  describe('scheduling a show', function() {
     it('should schedule a show', function(done) {
       submitted = {timeslot: fake.getRandomInt(0, 167), show_id: show.id};
 
