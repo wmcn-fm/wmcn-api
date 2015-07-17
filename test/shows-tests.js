@@ -12,6 +12,10 @@ describe('show route', function() {
     .end(function(e, res) {
       if (e) return console.log(e);
     });
+    superagent.del(root + '/schedule')
+    .end(function(e, res) {
+      if (e) return console.log(e);
+    });
     superagent.del(root + '/shows')
     .end(function(e, res) {
       if (e) return console.log(e);

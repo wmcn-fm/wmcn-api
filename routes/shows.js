@@ -28,8 +28,6 @@ shows.route('/')
         } else {
           res.json(200, {shows: result});
         }
-
-        client.end();
   		});	//	end Shows.getAllShows()
   	});	//	end pg.connect
   })
@@ -122,6 +120,7 @@ shows.route('/:id')
   .get(function(req, res) {
     pg.connect(db, function(err, client, done) {
       if (err) {
+        done();
         return res.json(500, {error: err});
       }
 
@@ -137,7 +136,6 @@ shows.route('/:id')
         	res.json(500, {error: err});
         }
 
-        client.end();
       });
     });
   })

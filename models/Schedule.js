@@ -1,3 +1,4 @@
+var Show = require('./Show');
 var Schedule = {};
 
 Schedule.getSchedule = function(client, cb) {
@@ -34,7 +35,16 @@ Schedule.getShowAtTime = function(client, timeslot, cb) {
     if (err) {
       cb(err);
     } else {
-      cb(null, result.rows);
+
+      if (result.rows[0]) {
+        Show.getShowById(client, result.rows[0].show_id, function(err, show) {
+          if (err) return cb(err);
+          cb(null, show[0]);
+        });
+      } else {
+        cb(null, null);
+      }
+
     }
   });
 }
@@ -43,12 +53,12 @@ Schedule.getShowAtTime = function(client, timeslot, cb) {
 Schedule.scheduleShow = function(client, show, cb) {
   var values = [show.timeslot, show.show_id];
   var query = "INSERT INTO schedule(timeslot, show_id) \
-                VALUES($1, $2)";
+                VALUES($1, $2 ) RETURNING *";
   client.query(query, values, function(err, result) {
     if (err) {
       cb(err);
     } else {
-      cb(null, result.rowCount);
+      cb(null, result.rows);
     }
   });
 }
