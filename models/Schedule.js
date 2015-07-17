@@ -69,7 +69,7 @@ Schedule.deleteShowAtTime = function(client, timeslot, cb) {
     if (err) {
       return cb(err);
     } else {
-      cb(null, result);
+      cb(null, result.rowCount);
     }
   });
 }

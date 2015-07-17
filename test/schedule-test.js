@@ -150,7 +150,68 @@ describe('schedule', function() {
         done();
       });
     }); //  end invalid ts
-
   }); //  end retrieving
+
+  describe('deleting a scheduled slot', function() {
+    var show;
+    var slot;
+    before(function(done) {
+      superagent.post(root + '/shows')
+      .send({show: fake.makeRandomShow()})
+      .end(function(e, res) {
+        if (e) return console.log(e);
+        show = res.body.new_show;
+        slot = {timeslot: fake.getRandomInt(0, 167), show_id: show.id};
+        superagent.post(root + '/schedule')
+        .send({show: slot})
+        .end(function(e, res) {
+          if (e) return console.log(e);
+          done();
+        });
+      });
+    }); //  end before
+
+    it('should remove the show from the schedule...', function() {
+      superagent.del(root + '/schedule/' + slot.timeslot)
+      .end(function(e, res) {
+        expect(e).to.eql(null);
+        expect(res.statusCode).to.equal(200);
+        expect(res.body).to.only.have.key('result');
+        expect(res.body.result).to.equal("cleared slot " + slot.timeslot );
+      });
+    }); //  end delete show
+
+    it('...but keep the show itself', function(done) {
+      superagent.get(root + '/shows/' + slot.show_id)
+      .end(function(e, res) {
+        expect(e).to.eql(null);
+        expect(res.statusCode).to.equal(200);
+        expect(res.body.show.id).to.equal(slot.show_id );
+        done();
+      });
+    }); //  end delete show
+
+    it('should handle unscheduled slots', function(done) {
+      superagent.del(root + '/schedule/' + slot.timeslot)
+      .end(function(e, res) {
+        expect(e).to.eql(null);
+        expect(res.statusCode).to.equal(404);
+        expect(res.body).to.only.have.key('error');
+        expect(res.body.error).to.equal("timeslot " + slot.timeslot + " is empty");
+        done();
+      });
+    }); //  end delete show
+
+    it('should handle faulty params', function(done) {
+      superagent.del(root + '/schedule/xyz')
+      .end(function(e, res) {
+        expect(e).to.eql(null);
+        expect(res.statusCode).to.equal(403);
+        expect(res.body).to.only.have.key('error');
+        expect(res.body.error).to.equal("timeslot xyz is out of range 0-167");
+        done();
+      });
+    }); //  end delete show
+  }); //  end deleting
 
 }); //  end test

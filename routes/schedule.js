@@ -82,7 +82,6 @@ schedule.route('/:timeslot')
 
       //  catch invalid params
       if ( !(0 <= timeslot && timeslot <= 167)) {
-        console.log('hello from invalid timeslot params!!' + timeslot);
         done();
         return res.json(403, {error: 'timeslot ' + timeslot + ' is out of range 0-167'});
       }
@@ -109,25 +108,26 @@ schedule.route('/:timeslot')
       }
 
       var timeslot = req.params.timeslot;
-      api.get('/schedule/' + timeslot, function(err, result, statusCode) {
-        if (err) {
-          res.json(500, {error: err});
-        } else if (!err && result && statusCode === 200) {
-          Schedule.deleteShowAtTime(client, timeslot, function(err, result) {
-            done();
+      //  catch invalid params
+      if ( !(0 <= timeslot && timeslot <= 167)) {
+        done();
+        return res.json(403, {error: 'timeslot ' + timeslot + ' is out of range 0-167'});
+      }
 
-            if (err) {
-              res.json(500, {error: err});
-            } else {
-              res.json(200, {result: "cleared slot " + timeslot});
-            }
+      Schedule.deleteShowAtTime(client, timeslot, function(err, result) {
+        done();
 
-            client.end();
-          }); //  end Schedule.delete
+        console.log(result);
+
+        if (!err && result) {
+          res.json(200, {result: "cleared slot " + timeslot});
+        } else if (!err) {
+          res.json(404, {error: "timeslot " + timeslot + " is empty"});
         } else {
-          res.json(statusCode, result)
+          res.json(500, {error: err});
         }
-      }); //  end api.get
+
+      }); //  end Schedule.delete
     }); //  end pg.connect
   });
 
