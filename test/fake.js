@@ -5,12 +5,12 @@ fake.makeRandomUser = function makeRandomUser() {
   var user = {};
   user.first_name = faker.name.firstName();
   user.last_name = faker.name.lastName();
-  user.phone = getRandomInt(100000000000000, 999999999999999).toString();
+  user.phone = fake.getRandomInt(100000000000000, 999999999999999).toString();
   user.email = faker.internet.email();
   user.hash = faker.internet.password();
-  user.grad_year = getRandomInt(1950, 2018);
-  user.mac_id = getRandomInt(100000000, 999999999);
-  user.iclass = getRandomInt(10000, 99999);
+  user.grad_year = fake.getRandomInt(1950, 2018);
+  user.mac_id = fake.getRandomInt(100000000, 999999999);
+  user.iclass = fake.getRandomInt(10000, 99999);
   return user;
 }
 
@@ -19,7 +19,7 @@ fake.makeRandomShow = function makeRandomShow() {
   var show = {};
   show.title = faker.lorem.words().toString();
   show.blurb = '';
-  for (var i=0; i<getRandomInt(2, 8); i++) {
+  for (var i=0; i<fake.getRandomInt(2, 8); i++) {
     show.blurb += faker.lorem.sentence();
   }
 
@@ -28,7 +28,7 @@ fake.makeRandomShow = function makeRandomShow() {
 
 fake.makeRandomScheduleRow = function makeRandomScheduleRow() {
   var rel = {};
-  rel.timeslot = getRandomInt(0, 167);
+  rel.timeslot = fake.getRandomInt(0, 167);
   rel.show_id = null;
 
   return rel;
@@ -39,7 +39,7 @@ fake.makeRandomPlaylist = function makeRandomPlaylist() {
   pl.content = '';
   pl.show_id = null;
 
-  for (var i=0; i<getRandomInt(2, 8); i++) {
+  for (var i=0; i<fake.getRandomInt(2, 8); i++) {
     pl.content += faker.lorem.paragraph();
   }
 
@@ -61,24 +61,24 @@ fake.makeRandomApp = function makeRandomApp() {
   a.time_pref = 1;
   a.description = faker.lorem.sentences();
 
-  for (var i=0; i<getRandomInt(2, 30); i++) {
-    a.availability.push(getRandomInt(0, 167));
+  for (var i=0; i<fake.getRandomInt(2, 30); i++) {
+    a.availability.push(fake.getRandomInt(0, 167));
   }
 
-  for (var i=0; i<getRandomInt(1, 4); i++) {
+  for (var i=0; i<fake.getRandomInt(1, 4); i++) {
     a.first_name.push(faker.name.firstName() );
     a.last_name.push(faker.name.lastName() );
-    a.phone.push(getRandomInt(100000000000000, 999999999999999).toString());
+    a.phone.push(fake.getRandomInt(100000000000000, 999999999999999).toString());
     a.email.push(faker.internet.email() );
-    a.grad_year.push(getRandomInt(1950, 2018));
-    a.mac_id.push(getRandomInt(100000000, 999999999) );
-    a.iclass.push(getRandomInt(10000, 99999));
+    a.grad_year.push(fake.getRandomInt(1950, 2018));
+    a.mac_id.push(fake.getRandomInt(100000000, 999999999) );
+    a.iclass.push(fake.getRandomInt(10000, 99999));
   }
 
   return a;
 }
 
-function getRandomInt(min, max) {
+fake.getRandomInt = function(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
