@@ -61,10 +61,12 @@ users.route('/')
 
 			var user = req.body.user;
 			if (!user) {
-				res.json(403, {error: 'user object is ' + user})
+				done();
+				return res.json(403, {error: 'user object is ' + user});
 			} else {
 				var missingColumns = utils.hasMissingColumns(user, 'user');
 				if (missingColumns) {
+					done();
 					return res.json(403, {error: missingColumns + ' field is missing'});
 				}
 
@@ -311,7 +313,7 @@ users.route('/:id/shows/current')
 			var user_id = req.params.id;
 				Users.getCurrentShows(client, user_id, function(err, result) {
 					done();
-					
+
 					if (!err && result) {
 						res.json(200, {shows: result});
 					} else if (!err) {

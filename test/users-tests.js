@@ -61,18 +61,6 @@ describe('user route', function() {
       });
     });  // end retrieve new user
 
-    it('should update the total number of users', function(done) {
-      superagent.get(root + '/users')
-      .end(function(e, res) {
-        expect(e).to.eql(null);
-        expect(res.body).to.not.contain('error');
-        expect(res.statusCode).to.equal(200);
-        expect(res.body.users.length).to.equal(1);
-        expect(res.body.users[0]).to.eql(newUser);
-        done();
-      });
-    });  // end update total users
-
     it('should remove the new user', function(done) {
       superagent.del(root + '/users/' + newUser.id)
       .end(function(e, res){

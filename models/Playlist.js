@@ -19,7 +19,11 @@ Playlist.getAllPlaylists = function(client, cb) {
 	});
 
 	query.on('end', function(result) {
-		cb(null, result.rows);
+		if (!result.rows.length > 0) {
+			cb(null, null);
+		} else {
+			cb(null, result.rows);
+		}
 	});
 }
 
@@ -31,7 +35,7 @@ Playlist.updateAllPlaylists = function(client, updates, cb) {
 
   //  iterate over the JSON object to create
   //  a string of updated fields and values to pass to the query
-  for (var key in updates) {  
+  for (var key in updates) {
     if (updates.hasOwnProperty(key)) {
       var update = key + " = " + updates[key] + ", ";
       updateString += update;
@@ -59,7 +63,7 @@ Playlist.updateAllPlaylists = function(client, updates, cb) {
 
 //	DELETE all playlists in the table
 Playlist.deleteAllPlaylists = function(client, cb) {
-	var query = client.query("DELETE * FROM playlists");
+	var query = client.query("DELETE FROM playlists");
 
   query.on('error', function(err) {
     cb(err);
@@ -70,7 +74,7 @@ Playlist.deleteAllPlaylists = function(client, cb) {
   });
 
   query.on('end', function(result) {
-    cb(null, result.rows);8
+    cb(null, result.rows);
   });
 }
 
@@ -98,7 +102,7 @@ Playlist.getPlaylists = function(client, n, cb) {
 Playlist.addPlaylist = function (client, pl, cb) {
 	var values = [ parseInt(pl.show_id), pl.content];
 	var query = "INSERT INTO playlists(show_id, content) \
-							VALUES($1, $2)";
+							VALUES($1, $2) RETURNING *";
 	client.query(query, values, function(err, result) {
 		if (err) {
 			return cb(err);

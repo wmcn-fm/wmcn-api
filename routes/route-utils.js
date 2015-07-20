@@ -11,6 +11,8 @@ utils.hasMissingColumns = function(obj, type) {
               'email', 'hash', 'grad_year', 'mac_id', 'iclass'];
   var showKeys = ['title', 'blurb'];
   var scheduleKeys = ['timeslot', 'show_id'];
+  var plKeys = ['show_id', 'content'];
+
   switch(type) {
     case 'user':
       return checkColumns(obj, userKeys);
@@ -18,6 +20,8 @@ utils.hasMissingColumns = function(obj, type) {
       return checkColumns(obj, showKeys);
     case 'schedule':
       return checkColumns(obj, scheduleKeys);
+    case 'playlist':
+      return checkColumns(obj, plKeys);
   }
 }
 

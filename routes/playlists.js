@@ -5,15 +5,13 @@ var config = require('../config/config')();
 var db = config.db;
 var Playlists = require('../models/Playlist');
 var api = require('../models/api');
-
-//  for testing/development only:
-var faker = require('../test/fake');
-var utils = require('../test/utils');
+var utils = require('./route-utils');
 
 playlists.route('/')
 	.get(function(req, res) {
 	  pg.connect(db, function(err, client, done) {
 	  	if (err) {
+				done();
 	  		return res.json(500, {error: err});
 	  	}
 
@@ -21,61 +19,70 @@ playlists.route('/')
 		  	Playlists.getAllPlaylists(client, function(err, result) {
 		  		done();
 
-		  		if (err) {
-		  			res.json(500, {error: err});
-		  		} else {
-		  			res.json(200, {playlists: result});
-		  		}
+					if (!err && result) {
+						res.json(200, {playlists: result});
+	  			} else if (!err) {
+						res.json(404, {error: 'No playlists found', playlists: []});
+	  			} else {
+						res.json(500, {error: err.detail});
+					}
 
-		  		client.end();
-		  	});	//	end Playlists.getAllPlaylists 		
+		  	});	//	end Playlists.getAllPlaylists
 	  	} else {
 
 	  		var n = parseInt(req.query.limit);
 	  		Playlists.getPlaylists(client, n, function(err, result) {
 	  			done();
-	  			
-	  			if (err) {
-	  				res.json(500, {error: err});
-	  			} else {
-	  				res.json(200, {playlists: result});
-	  			}
 
-	  			client.end();
+	  			if (!err && result) {
+						res.json(200, {playlists: result});
+	  			} else if (!err) {
+						res.json(404, {error: 'No playlists found', playlists: []});
+	  			} else {
+						res.json(500, {error: err.detail});
+					}
+
 	  		});
 	  	}
-	  	
+
 	  });	//	end pg.connect
 	})	//	end .get
 
 	//	POST a new playlist to the table
-	.post(function(req, res) {	
+	.post(function(req, res) {
 		pg.connect(db, function(err, client, done) {
 			if (err) {
+				done();
+				console.log('h!!!');
 				return res.json(500, {error: err});
 			}
 
-			var pl;
-			if (process.env.NODE_ENV === 'production') {
-				pl = req.body.playlist;
-				res.json(500, {error: 'not configured for production!!'});
-			} else {
-				pl = faker.makeRandomPlaylist();
-				pl.show_id = req.body.fake_show_id;
-			}
-
-			Playlists.addPlaylist(client, pl, function(err, result) {
+			var pl = req.body.playlist;
+			if (!pl) {
 				done();
-
-				if (err) {
-					return res.json(500, {error: err});
-				} else {
-					res.json(201, {result: result.rowCount + " playlist created."});
+				return res.json(403, {error: 'playlist object is ' + pl });
+			} else {
+				var missingColumns = utils.hasMissingColumns(pl, 'playlist');
+				if (missingColumns) {
+					done();
+					return res.json(403, {error: missingColumns + ' field is missing'});
 				}
 
-				client.end();
-			});	//	end pl.addPlaylist
+				Playlists.addPlaylist(client, pl, function(err, result) {
+					done();
 
+					if (err) {
+						return res.json(500, {error: err.detail});
+					} else {
+						res.json(201,
+							{
+								"result": result.rowCount + " playlist created",
+								"new_playlist": result.rows[0]
+							}
+						);
+					}
+				});	//	end pl.addPlaylist
+			}
 		});	//	end pg.connect
 	})	//	end .post
 
@@ -83,6 +90,7 @@ playlists.route('/')
 	.delete(function(req, res) {
 		pg.connect(db, function(err, client, done) {
 			if (err) {
+				done();
 				return res.json(500, {error: err});
 			}
 
@@ -96,7 +104,6 @@ playlists.route('/')
 					res.json(200, {result: result});
 				}
 
-				client.end();
 			});	//	end deleteAllPlaylists
 		});	//	end pg.connect
 	});	//	end .delete

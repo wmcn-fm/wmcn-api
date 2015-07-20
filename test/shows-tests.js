@@ -16,6 +16,10 @@ describe('show route', function() {
     .end(function(e, res) {
       if (e) return console.log(e);
     });
+    superagent.del(root + '/playlists')
+    .end(function(e, res) {
+      if (e) return console.log(e);
+    });
     superagent.del(root + '/shows')
     .end(function(e, res) {
       if (e) return console.log(e);
@@ -64,18 +68,6 @@ describe('show route', function() {
         done();
       });
     }); //  end retrieve new show
-
-    it('should update the total number of shows', function(done) {
-      superagent.get(root + '/shows')
-      .end(function(e, res) {
-        expect(e).to.eql(null);
-        expect(res.body).to.not.contain('error');
-        expect(res.statusCode).to.equal(200);
-        expect(res.body.shows.length).to.equal(1);
-        expect(res.body.shows[0]).to.eql(newShow);
-        done();
-      });
-    });  // end update total shows
 
     it('should remove the new show', function(done) {
       superagent.del(root + '/shows/' + newShow.id)
