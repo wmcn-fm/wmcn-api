@@ -300,6 +300,29 @@ users.route('/:id/shows')
 
 	});	//	end delete
 
+users.route('/:id/shows/current')
+	.get(function(req, res) {
+		pg.connect(db, function(err, client, done) {
+			if (err) {
+				done();
+				return res.json(500, {error: err});
+			}
+
+			var user_id = req.params.id;
+				Users.getCurrentShows(client, user_id, function(err, result) {
+					done();
+					
+					if (!err && result) {
+						res.json(200, {shows: result});
+					} else if (!err) {
+						res.json(404, {error: "User " + user_id + " doesn't currently host any shows"});
+					} else {
+						res.json(500, {error: err});
+					}
+				});
+
+		});	//	end pg.connect
+	})	//	end .get
 
 
 module.exports = users;

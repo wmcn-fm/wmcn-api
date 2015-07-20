@@ -235,4 +235,83 @@ describe('user route', function() {
 
   });  // end referencing shows
 
+  describe('current shows', function(done) {
+    var user;
+    var show1;
+    var show2;
+    var slot;
+
+    before(function(done) {
+      //  create a user
+      superagent.post(root + '/users')
+      .send({user: fake.makeRandomUser()})
+      .end(function(e, res) {
+        if (e) return console.log(e);
+        user = res.body.new_user;
+
+        //  create two shows
+        superagent.post(root + '/shows')
+        .send({show: fake.makeRandomShow()})
+        .end(function(e, res) {
+          if (e) return console.log(e);
+          show1 = res.body.new_show;
+
+          superagent.post(root + '/shows')
+          .send({show: fake.makeRandomShow()})
+          .end(function(e, res) {
+            if (e) return console.log(e);
+            show2 = res.body.new_show;
+
+            //  add user as host
+            superagent.post(root + '/users/' + user.id + '/shows')
+            .send({show_id: show1.id})
+            .end(function(e, res) {
+              if (e) return console.log(e);
+
+              superagent.post(root + '/users/' + user.id + '/shows')
+              .send({show_id: show2.id})
+              .end(function(e, res) {
+                if (e) return console.log(e);
+                done();
+              });
+            });
+          });
+        });
+      });
+    }); //  end before
+
+    it('should initially be empty', function(done) {
+      superagent.get(root + '/users/' + user.id + '/shows/current')
+      .end(function(e, res) {
+        expect(e).to.eql(null);
+        expect(res.statusCode).to.equal(404);
+        expect(res.body).to.only.have.key('error');
+        expect(res.body.error).to.equal("User " + user.id + " doesn't currently host any shows");
+        done();
+      });
+    }); //  end intialize empty
+
+    it('should return users current shows', function(done) {
+      //  post first show to the schedule
+      slot = {show_id: show1.id, timeslot: fake.getRandomInt(0, 167)};
+      superagent.post(root + '/schedule')
+      .send({show: slot})
+      .end(function(e, res) {
+        expect(e).to.eql(null);
+        expect(res.statusCode).to.equal(201);
+        expect(res.body).to.only.have.key('result');
+
+        superagent.get(root + '/users/' + user.id + '/shows/current')
+        .end(function(e, res) {
+          expect(e).to.eql(null);
+          expect(res.statusCode).to.equal(200);
+          expect(res.body).to.only.have.key('shows');
+          expect(res.body.shows).to.have.length(1);
+          expect(res.body.shows[0]).to.eql(show1);
+          done();
+        });
+      });
+    }); //  end return current shows
+  });  // end current shows
+
 }); //  end user route

@@ -1,6 +1,7 @@
 var forEachAsync = require('forEachAsync').forEachAsync;
 var Show = require('./Show');
 var Users = {};
+var utils = require('./model-utils');
 
 /**
   *
@@ -180,6 +181,26 @@ Users.getShows = function(client, user_id, cb) {
       cb(null, shows);
     });
 
+  });
+}
+
+Users.getCurrentShows = function(client, user_id, cb) {
+  var query = "SELECT * FROM hosts WHERE user_id = $1";
+
+  //  get all shows a user has hosted
+  client.query(query, [user_id], function(err ,result) {
+    if (err) return cb(err);
+
+    var sids = [];
+    for (var rel in result.rows) {
+      sids.push(result.rows[rel].show_id);
+    }
+
+    //  cross-match user's shows with current shows
+    utils.sortCurrent(client, sids, function(err, currentShows) {
+      if (err) return cb(err);
+      return cb(null, currentShows);
+    });
   });
 }
 
