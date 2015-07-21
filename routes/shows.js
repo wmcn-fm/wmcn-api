@@ -177,56 +177,12 @@ shows.route('/:id')
   	});	//	end pg.connect
   });
 
-
-shows.get('/:id/playlists', function(req, res) {
-  pg.connect(db, function(err, client, done) {
-    if (err) {
-      return res.json(500, {error: err});
-    }
-
-    var show_id = req.params.id;
-    api.get('/shows/' + show_id, function(err, result, statusCode) {
-      if (err) {
-        return res.json(500, {error: err});
-      } else if (!err && result && statusCode === 200) {
-
-        if (!req.query.limit) {
-
-          Shows.getAllPlaylists(client, show_id, function(err, result) {
-            if (err) {
-              res.json(500, {error: err});
-            } else if (result.length === 0) {
-              res.json(404, {error: "show " + show_id + " hasn't posted any playlists"});
-            } else {
-              res.json(200, {playlists: result});
-            }
-          }); //end getPlaylists
-        } else {
-
-          var limit = parseInt(req.query.limit);
-          Shows.getPlaylists(client, show_id, limit, function(err, result) {
-            if (err) {
-              res.json(500, {error: err});
-            } else if (result.length === 0) {
-              res.json(404, {error: "show " + show_id + " hasn't posted any playlists"});
-            } else {
-              res.json(200, {playlists: result});
-            }
-          });
-        }
-
-      } else {
-        return res.json(statusCode, result);
-      }
-    }); //  end api.get
-  });
-});
-
 //	GET a show's hosts' user objects
 shows.route('/:id/hosts')
   .get(function(req, res) {
   	pg.connect(db, function(err, client, done) {
   		if (err) {
+        done();
   			return res.json(500, {error:err});
   		}
 
@@ -241,15 +197,16 @@ shows.route('/:id/hosts')
         } else {
           res.json(500, {error: err});
         }
-
-  			client.end();
   		});
   	});
   })
 
   .post(function(req, res) {
     pg.connect(db, function(err, client, done) {
-      if (err) return res.json(500, {error: err});
+      if (err) {
+        done();
+        return res.json(500, {error: err});
+      }
 
       var show_id = req.params.id;
       var host_id = req.body.host_id;
@@ -261,10 +218,32 @@ shows.route('/:id/hosts')
         } else {
           res.json(201, {result: "Added user " + host_id + " to show " + show_id});
         }
-
-        client.end();
       }); //  end Show.
     }); //  end pg.connect
-  })
+  });
+
+shows.route('/:id/playlists')
+  .get(function(req, res) {
+    pg.connect(db, function(err, client, done) {
+      if (err) {
+        done();
+        return res.json(500, {error: err.detail});
+      }
+
+      var show_id = req.params.id;
+      var limit = req.query.limit;
+      Shows.getPlaylists(client, show_id, limit, function(e, result) {
+        done();
+
+        if (!e && result) {
+          res.json(200, {playlists: result});
+        } else if (!e) {
+          res.json(404, {error: 'No playlists found for show ' + show_id});
+        } else {
+          res.json(500, {error: err});
+        }
+      });
+    }); //  end pg.connect
+  }); //  end .get
 
 module.exports = shows;

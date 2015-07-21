@@ -164,6 +164,22 @@ Show.deleteShowById = function(client, show_id, cb) {
 	*
 **/
 
+Show.getPlaylists = function(client, show_id, limit, cb) {
+	if (!limit) {
+		limit = 10000;
+	}
+	var query = "SELECT * FROM playlists WHERE show_id = $1 ORDER BY created DESC LIMIT $2";
+	client.query(query, [show_id, limit], function(err ,result) {
+		if (err) return cb(err);
+
+		if (!result.rows.length > 0) {
+			cb(null, null)
+		} else {
+			cb(null, result.rows);
+		}
+	});
+}
+
 //	SELECT a list of currently active shows
 //	(ie, 0 <= show.timeslot <= 167)
 Show.getActiveShows = function(client, cb) {
@@ -205,14 +221,14 @@ Show.getHosts = function(client, show_id, cb) {
 
       var users = [];
       forEachAsync(uids, function(next, user_id, i, array) {
-        User.getUserById(client, user_id, function(err, result) {
-          if (err) {
+				client.query("SELECT * FROM users WHERE id = $1", [user_id], function(err, result) {
+					if (err) {
             return cb(err);
           } else {
-            users.push(result[0]);
+            users.push(result.rows[0]);
             next();
           }
-        })
+				});
       }).then(function() {
         cb(null, users);
       });

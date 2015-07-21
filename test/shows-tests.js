@@ -138,46 +138,170 @@ describe('show route', function() {
             expect(res.body.error).to.eql('Key (title)=(' + origTitle + ') already exists.');
             done();
           });
-
-
         });
       }); //  end catch duplicate
-
     }); //  end error handler show
-
-
   }); //  end creating a new show
 
-  // it("should get one show's hosts", function(done){
-  //   utils.getValid('shows', function(err, showId) {
-  //     if (err) return console.log(err);
-  //     superagent.get('/shows/' + showId + '/hosts')
-  //     .end(function(e, res){
-  //       expect(e).to.eql(null);
-  //       expect(res.statusCode).to.eql(200);
-  //       expect(typeof res.body).to.eql('object');
-  //       done();
-  //     });
-  //   });
-  // });
-  //
-  // it("adds a user as a show's host", function(done) {
-  //   utils.getValid('shows', function(err, showId) {
-  //     if (err) return console.log(err);
-  //     utils.getValid('users', function(err, host_id) {
-  //       if (err) return console.log(err);
-  //
-  //       superagent.post('/shows/' + showId + '/hosts')
-  //       .send({host_id: host_id})
-  //       .end(function(e, res) {
-  //         expect(e).to.eql(null);
-  //         expect(res.statusCode).to.equal(201);
-  //         expect(res.body.result).to.eql("Added user " + host_id + "to show" + newerId);
-  //         done();
-  //       });
-  //
-  //     });
-  //   });
-  // });
+  describe('hosts', function() {
+    var show;
+    var user1;
+    var user2;
 
+    before(function(done) {
+      superagent.post(root + '/shows')
+      .send({show: fake.makeRandomShow()})
+      .end(function(e, res) {
+        if (e) return console.log(e);
+        show = res.body.new_show;
+
+        superagent.post(root + '/users')
+        .send({user: fake.makeRandomUser()})
+        .end(function(e, res) {
+          if (e) return console.log(e);
+          user1 = res.body.new_user;
+
+          superagent.post(root + '/users')
+          .send({user: fake.makeRandomUser()})
+          .end(function(e, res) {
+            if (e) return console.log(e);
+            user2 = res.body.new_user;
+            done();
+          });
+        });
+      });
+    }); //  end before
+
+    it("should initialize empty", function(done){
+      superagent.get(root + '/shows/' + show.id + '/hosts')
+      .end(function(e, res) {
+        expect(e).to.eql(null);
+        expect(res.statusCode).to.equal(404);
+        expect(res.body).to.only.have.key('error');
+        expect(res.body.error).to.equal('show ' + show.id + ' has no listed hosts');
+        done();
+      });
+    }); //  end init empty
+
+    it("should add a user as a host", function(done) {
+      superagent.post(root + '/shows/' + show.id + '/hosts')
+      .send({host_id: user1.id})
+      .end(function(e, res) {
+        expect(e).to.eql(null);
+        expect(res.statusCode).to.equal(201);
+        expect(res.body).to.only.have.key('result');
+        expect(res.body.result).to.equal('Added user ' + user1.id + " to show " + show.id);
+
+        superagent.post(root + '/shows/' + show.id + '/hosts')
+        .send({host_id: user2.id})
+        .end(function(e, res) {
+          expect(e).to.eql(null);
+          expect(res.statusCode).to.equal(201);
+          expect(res.body).to.only.have.key('result');
+          expect(res.body.result).to.equal('Added user ' + user2.id + " to show " + show.id);
+          done();
+        });
+      });
+    }); //  end add user as host
+
+    it('should retrieve the hosts', function(done) {
+      superagent.get(root + '/shows/' + show.id + '/hosts')
+      .end(function(e, res) {
+        expect(e).to.eql(null);
+        expect(res.statusCode).to.equal(200);
+        expect(res.body).to.only.have.key('hosts');
+        expect(res.body.hosts).to.have.length(2);
+        expect(res.body.hosts[0]).to.eql(user1);
+        expect(res.body.hosts[1]).to.eql(user2);
+        done();
+      });
+    });
+  }); //  end describe pairing hosts
+
+  describe('playlists', function() {
+    var show;
+    var pl1;
+    var pl2;
+
+    before(function(done) {
+      pl1 = fake.makeRandomPlaylist();
+      pl2 = fake.makeRandomPlaylist();
+
+      superagent.del(root + '/playlists')
+      .end(function(e, res) {
+        if (e) return console.log(e);
+
+        superagent.post(root + '/shows')
+        .send({show: fake.makeRandomShow()})
+        .end(function(e, res) {
+          if (e) return console.log(e);
+          show = res.body.new_show;
+          pl1.show_id = show.id;
+          pl2.show_id = show.id;
+          done();
+        });
+      });
+    }); //  end before
+
+    it("should initialize empty", function(done){
+      superagent.get(root + '/shows/' + show.id + '/playlists')
+      .end(function(e, res) {
+        expect(e).to.eql(null);
+        expect(res.statusCode).to.equal(404);
+        expect(res.body).to.only.have.key('error');
+        expect(res.body.error).to.equal('No playlists found for show ' + show.id);
+        done();
+      });
+    }); //  end init empty
+
+    it("should add a playlist", function(done) {
+      superagent.post(root + '/playlists')
+      .send({playlist: pl1})
+      .end(function(e, res) {
+        expect(e).to.eql(null);
+        expect(res.statusCode).to.equal(201);
+        expect(res.body).to.only.have.keys('result', 'new_playlist');
+        expect(res.body.result).to.equal('1 playlist created');
+        expect(res.body.new_playlist.content).to.equal(pl1.content);
+        pl1 = res.body.new_playlist;
+
+        superagent.post(root + '/playlists')
+        .send({playlist: pl2})
+        .end(function(e, res) {
+          expect(e).to.eql(null);
+          expect(res.statusCode).to.equal(201);
+          expect(res.body).to.only.have.keys('result', 'new_playlist');
+          expect(res.body.result).to.equal('1 playlist created');
+          expect(res.body.new_playlist.content).to.equal(pl2.content);
+          pl2 = res.body.new_playlist;
+          done();
+        });
+      });
+    }); //  end add playlists
+
+    it('should retrieve the playlists', function(done) {
+      superagent.get(root + '/shows/' + show.id + '/playlists')
+      .end(function(e, res) {
+        expect(e).to.eql(null);
+        expect(res.statusCode).to.equal(200);
+        expect(res.body).to.only.have.key('playlists');
+        expect(res.body.playlists).to.have.length(2);
+        expect(res.body.playlists[0]).to.eql(pl2);
+        expect(res.body.playlists[1]).to.eql(pl1);
+        done();
+      });
+    }); //  end retrieve playlists
+
+    it('should retrieve one playlist', function(done) {
+      superagent.get(root + '/shows/' + show.id + '/playlists?limit=1')
+      .end(function(e, res) {
+        expect(e).to.eql(null);
+        expect(res.statusCode).to.equal(200);
+        expect(res.body).to.only.have.key('playlists');
+        expect(res.body.playlists).to.have.length(1);
+        expect(res.body.playlists[0]).to.eql(pl2);
+        done();
+      });
+    }); //  end retrieve playlists
+  }); //  end describe playlists
 }); //  end show route

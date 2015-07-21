@@ -310,8 +310,7 @@ npm test
 			- **Response body**: `{playlists: [...]}`
 		- **Error**:
 			- **Status code**: `404`
-			- **Response body**: `{error: show <id> doesn't exist.}`
-			- **NOTE**: improper error handling; see [issue 6](https://github.com/wmcn-fm/wmcn-api/issues/6)
+			- **Response body**: `{error: No Playlists found for show <id}`
 
 
 ####Playlists
