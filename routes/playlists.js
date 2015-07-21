@@ -124,7 +124,7 @@ playlists.route('/:id')
 				if (!err && result) {
 					res.json(200, {playlist: result});
 				} else if (!err) {
-					res.json(404, {"error": "Couldn't find playlist with id\t" + id});
+					res.json(404, {"error": "Couldn't find playlist " + id});
 				} else {
 					res.json(500, {error: err});
 				}
@@ -154,8 +154,7 @@ playlists.route('/:id')
 				done();
 
 				if (!err && result) {
-					res.json(200, {"result": "Playlist " + id + " deleted." });
-					// res.json(200, {message: '/returns the id of the deleted playlist: ' + id});
+					res.json(200, {"result": "Deleted playlist " + id });
 				} else if (!err) {
 					res.json(404, {"error": "Couldn't find playlist with id\t" + id});
 				} else {

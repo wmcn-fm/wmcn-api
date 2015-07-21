@@ -81,19 +81,87 @@ describe('playlists', function() {
   }); //  end describe creating playlist
 
 
-  // describe('single playlist', function() {
-  //   it('should retrieve one playlist', function(done) {
-  //     done();
-  //   }); //  end retrieve one playlist
-  //
-  //   it('should delete the playlist', function(done) {
-  //     done();
-  //   }); //  end delete playlist
-  // }); //  end describe single playlist
+  describe('single playlist', function() {
+    var playlist;
+    before(function(done) {
+      playlist = fake.makeRandomPlaylist();
+      playlist.show_id = show.id;
 
-  // describe('query limiter', function() {
-  //   it('should return the proper number of playlists', function(done) {
-  //     done();
-  //   }); //  end return proper #
-  // }); //  end describe query limiter
+      superagent.post(root + '/playlists')
+      .send({playlist: playlist})
+      .end(function(e, res) {
+        if (e) return console.log(e);
+        playlist = res.body.new_playlist;
+        done();
+      });
+    }); //  end before
+
+    it('should retrieve one playlist', function(done) {
+      superagent.get(root + '/playlists/' + playlist.id )
+      .end(function(e, res) {
+        expect(e).to.eql(null);
+        expect(res.statusCode).to.equal(200);
+        expect(res.body).to.only.have.key('playlist');
+        expect(res.body.playlist).to.eql(playlist);
+        done();
+      });
+    }); //  end retrieve one playlist
+
+    it('should delete the playlist', function(done) {
+      superagent.del(root + '/playlists/' + playlist.id)
+      .end(function(e, res) {
+        expect(e).to.eql(null);
+        expect(res.statusCode).to.equal(200);
+        expect(res.body).to.only.have.key('result');
+        expect(res.body.result).to.equal('Deleted playlist ' + playlist.id);
+
+        superagent.get(root + '/playlists/' + playlist.id)
+        .end(function(e, res) {
+          expect(e).to.eql(null);
+          expect(res.statusCode).to.equal(404);
+          expect(res.body).to.only.have.key('error');
+          expect(res.body.error).to.equal("Couldn't find playlist " + playlist.id);
+          done();
+        });
+      });
+    }); //  end delete playlist
+  }); //  end describe single playlist
+
+  describe('query limiter', function() {
+    var playlist1;
+    var playlist2;
+    before(function(done) {
+      playlist1 = fake.makeRandomPlaylist();
+      playlist2 = fake.makeRandomPlaylist();
+      playlist1.show_id = show.id;
+      playlist2.show_id = show.id;
+      superagent.post(root + '/playlists')
+      .send({playlist: playlist1})
+      .end(function(e, res) {
+        if (e) return console.log(e);
+        playlist1 = res.body.new_playlist;
+
+        superagent.post(root + '/playlists')
+        .send({playlist: playlist2})
+        .end(function(e, res) {
+          if (e) return console.log(e);
+          playlist2 = res.body.new_playlist;
+          done();
+        });
+      });
+    }); //  end before
+
+    it('should return the proper number of playlists', function(done) {
+      superagent.get(root + '/playlists?limit=1')
+      .end(function(e, res) {
+        expect(e).to.eql(null);
+        expect(res.statusCode).to.equal(200);
+        expect(res.body).to.only.have.key('playlists');
+        expect(res.body.playlists).to.have.length(1);
+        expect(res.body.playlists[0]).to.eql(playlist2);
+        done();
+      });
+
+    }); //  end return proper #
+  }); //  end describe query limiter
 }); //  end describe playlists
