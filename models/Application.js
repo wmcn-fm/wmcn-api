@@ -9,7 +9,7 @@ var Apps = {};
 //  SELECT all apps in the table
 Apps.getAllApps = function(client, cb) {
   var query = client.query("SELECT * FROM applications ORDER BY created DESC");
-  
+
   query.on('error', function(err) {
     cb(err)
   });
@@ -19,7 +19,11 @@ Apps.getAllApps = function(client, cb) {
   });
 
   query.on('end', function(result) {
-    cb(null, result.rows)
+    if (!result.rows.length > 0) {
+			cb(null, null);
+		} else {
+			cb(null, result.rows);
+		}
   });
 }
 
@@ -48,7 +52,7 @@ Apps.updateAllApps = function(client, updates, cb) {
 
   //  iterate over the JSON object to create
   //  a string of updated fields and values to pass to the query
-  for (var key in updates) {  
+  for (var key in updates) {
     if (updates.hasOwnProperty(key)) {
       var update = key + " = " + updates[key] + ", ";
       updateString += update;
@@ -86,7 +90,7 @@ Apps.updateAllApps = function(client, updates, cb) {
 //      id: int, first_name: string[], last_name: string[],
 //      email: string[], grad_year: int[], mac_id: int[],
 //      iclass: int[], created: date, title: string, timeslot: int,
-//      blurb: string, availability: int[], time_pref: int, description: string 
+//      blurb: string, availability: int[], time_pref: int, description: string
 Apps.addApp = function(client, a, cb) {
   var appArr = [ a.first_name, a.last_name, a.phone, a.email,
                   a.grad_year, a.mac_id, a.iclass,
@@ -95,11 +99,11 @@ Apps.addApp = function(client, a, cb) {
   var qStr = "INSERT INTO applications(first_name, last_name, phone, email, \
               grad_year, mac_id, iclass, title, blurb, \
               availability, time_pref, description) VALUES($1, $2, $3, $4, $5, \
-               $6, $7, $8, $9, $10, $11, $12)";
+               $6, $7, $8, $9, $10, $11, $12) RETURNING *";
   client.query(qStr, appArr, function(err, result){
-    if (err) return cb(err)
-    cb(null, result)
-  })
+    if (err) return cb(err);
+    cb(null, result);
+  });
 }
 
 //  SELECT one app from the table by their id
@@ -111,7 +115,7 @@ Apps.getAppById = function(client, app_id, cb) {
       return cb(err);
     } else {
       cb(null, result.rows[0]);
-    }  
+    }
   });
 }
 

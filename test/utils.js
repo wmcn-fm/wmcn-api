@@ -25,6 +25,11 @@ utils.randomProperty = function (type) {
                 'email', 'hash', 'grad_year', 'mac_id', 'iclass'];
     var showKeys = ['title', 'blurb'];
     var plKeys = ['show_id', 'content'];
+    var appKeys = userKeys.concat(showKeys, ['availability', 'time_pref', 'description']);
+    var hashIndex = appKeys.indexOf('hash');
+    if (hashIndex > -1) {
+      appKeys.splice(hashIndex, 1);
+    }
 
     switch (type) {
       case 'user':
@@ -33,6 +38,8 @@ utils.randomProperty = function (type) {
         return showKeys[showKeys.length * Math.random() << 0];
       case 'playlist':
         return plKeys[plKeys.length * Math.random() << 0];
+      case 'app':
+        return appKeys[appKeys.length * Math.random() << 0];
     }
 };
 

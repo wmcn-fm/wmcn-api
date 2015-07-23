@@ -4,6 +4,8 @@ var pg = require('pg');
 var config = require('../config/config')();
 var db = config.db;
 var Applications = require('../models/Application');
+var utils = require('./route-utils');
+
 
 //  for testing/development only:
 var faker = require('../test/fake');
@@ -15,20 +17,20 @@ applications.route('/')
 	.get(function(req, res) {
 		pg.connect(db, function(err, client, done) {
 	  	if (err) {
+				done();
 	  		return res.json(500, {error: err});
 	  	}
 
 	  	Applications.getAllApps(client, function(err, result) {
 	  		done();
 
-	  		if (err) {
-	  			return res.json(500, {error: err.detail});
+	  		if (!err && result) {
+					res.json(200, {applications: result});
+	  		} else if (!err) {
+				  res.json(404, {error: 'No applications found', applications: [] });
 	  		} else {
-				res.json(200, {applications: result});
-			  // res.json(200, {shows: '/returns a list of all Applications'});
-	  		}
-
-	  		client.end();
+					res.json(500, {error: err.detail});
+				}
 	  	});	//	end Applications.getAllApps
 	  });	//	end pg.connect
 	})
@@ -37,24 +39,36 @@ applications.route('/')
 	.post(function(req, res) {
 		pg.connect(db, function(err, client, done) {
 			if (err) {
-				return res.json(500, err);
+				done();
+				return res.json(500, {error: err});
 			}
 
-			// TODO: when POSTing is set up on the client, uncomment the line below instead of makeRandomApp()
-			// var app = req.body.application;
-			var app = faker.makeRandomApp();
-			console.log(app);
-			Applications.addApp(client, app, function(err, result) {
+			var app = req.body.app;
+			if (!app) {
 				done();
-
-				if (err) {
-					res.json(500, {error: err.detail});
-				} else {
-					res.json(201, {"result": result.rowCount + " application created."});	
+				return res.json(403, {error: 'app object is ' + app});
+			} else {
+				var missingColumns = utils.hasMissingColumns(app, 'app');
+				if (missingColumns) {
+					done();
+					return res.json(403, {error: missingColumns + ' field is missing'});
 				}
 
-				client.end();
-			});	//	end app.add
+				Applications.addApp(client, app, function(err, result) {
+					done();
+
+					if (err) {
+						res.json(500, {error: err.detail});
+					} else {
+						res.json(201,
+							{"result": result.rowCount + " application created",
+								"new_app": result.rows[0]
+							}
+						);
+					}
+				});	//	end app.add
+			}
+
 		});	//	end pg.connect
 	})
 

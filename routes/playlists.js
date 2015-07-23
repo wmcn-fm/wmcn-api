@@ -53,7 +53,6 @@ playlists.route('/')
 		pg.connect(db, function(err, client, done) {
 			if (err) {
 				done();
-				console.log('h!!!');
 				return res.json(500, {error: err});
 			}
 

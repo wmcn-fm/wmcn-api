@@ -12,6 +12,11 @@ utils.hasMissingColumns = function(obj, type) {
   var showKeys = ['title', 'blurb'];
   var scheduleKeys = ['timeslot', 'show_id'];
   var plKeys = ['show_id', 'content'];
+  var appKeys = userKeys.concat(showKeys, ['availability', 'time_pref', 'description']);
+  var hashIndex = appKeys.indexOf('hash');
+  if (hashIndex > -1) {
+    appKeys.splice(hashIndex, 1);
+  }
 
   switch(type) {
     case 'user':
@@ -22,6 +27,8 @@ utils.hasMissingColumns = function(obj, type) {
       return checkColumns(obj, scheduleKeys);
     case 'playlist':
       return checkColumns(obj, plKeys);
+    case 'app':
+      return checkColumns(obj, appKeys);
   }
 }
 
