@@ -108,7 +108,11 @@ applications.route('/')
 				if (err) {
 					res.json(500, {error: err.detail});
 				} else {
-					res.json(200, {result: "deleted "+result+ " applications"});
+					res.json(200,
+						{result: "deleted "+result+ " applications",
+							num_deleted: result
+						}
+					);
 				}
 
 				client.end();
@@ -128,9 +132,9 @@ applications.route('/:id')
 				done();
 
 				if (!err && result) {
-					res.json(200, result);
+					res.json(200, {application: result});
 				} else if (!err) {
-					res.json(404, {"error": "Couldn't find app with id\t" + id});
+					res.json(404, {"error": "Couldn't find app with id " + id});
 				} else {
 					res.json(500, err);
 				}
