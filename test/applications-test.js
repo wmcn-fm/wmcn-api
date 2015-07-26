@@ -72,10 +72,26 @@ describe('applications', function() {
         expect(e).to.eql(null);
         expect(res.statusCode).to.equal(403);
         expect(res.body).to.only.have.key('error');
-        expect(res.body.error).to.eql(randomProp + ' field is missing');
+        expect(res.body.error).to.eql('Application is missing information');
         done();
       });
     }); //  end catch missing columns
+
+
+    it('should catch user info discrepancy', function(done) {
+      var badApp = fake.makeRandomApp();
+      var randomProp = utils.randomProperty('user');
+      badApp[randomProp].splice(0, 1);
+      superagent.post(root + '/applications/')
+      .send({app: badApp})
+      .end(function(e, res) {
+        expect(e).to.eql(null);
+        expect(res.statusCode).to.equal(403);
+        expect(res.body).to.only.have.key('error');
+        expect(res.body.error).to.equal('Application is missing information');
+        done();
+      });
+    });
   }); //  end describe posting an app
 
   describe('retrieving', function() {
@@ -156,5 +172,56 @@ describe('applications', function() {
     }); //  end delete all
 
   }); //  end describe deleting
+
+  describe('approving', function() {
+    var app;
+    before(function(done) {
+      superagent.post(root + '/applications')
+      .send({app: fake.makeRandomApp() })
+      .end(function(e, res) {
+        if (e) return console.log(e);
+        app = res.body.new_app;
+        done();
+      });
+    }); //  end before
+
+    it('should approve an app', function(done) {
+      superagent.post(root + '/applications/' + app.id + '/approve')
+      .send({app: app, timeslot: fake.getRandomInt(0, 167)})
+      .end(function(e, res) {
+        expect(e).to.eql(null);
+        expect(res.statusCode).to.equal(201);
+        expect(res.body).to.only.have.key('result');
+        
+        var result = res.body.result;
+        expect(result).to.only.have.keys('users', 'num_hosts', 'timeslot', 'show');
+        expect(result.users).to.be.an('array');
+        expect(result.num_hosts).to.be.a('number');
+        expect(result.timeslot).to.be.within(0, 168);
+        expect(result.show).to.be.an('object');
+        expect(result.users).to.have.length(result.num_hosts);
+
+        superagent.get(root + '/shows/' + result.show.id + '/hosts')
+        .end(function(e, res) {
+          expect(e).to.eql(null);
+          expect(res.statusCode).to.equal(200);
+          expect(res.body).to.only.have.key('hosts');
+          expect(res.body.hosts).to.eql(result.users);
+
+          superagent.get(root + '/schedule/' + result.timeslot)
+          .end(function(e, res) {
+            expect(e).to.equal(null);
+            expect(res.statusCode).to.equal(200);
+            expect(res.body).to.only.have.key('show');
+            expect(res.body.show).to.eql(result.show);
+            done();
+          });
+        })
+      });
+    });
+
+
+
+  }); //  end describe approving
 
 }); //  end describe applications

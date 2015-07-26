@@ -45,9 +45,10 @@ applications.route('/')
 				return res.json(403, {error: 'app object is ' + app});
 			} else {
 				var missingColumns = utils.hasMissingColumns(app, 'app');
-				if (missingColumns) {
+				var appOk = utils.appOk(app);
+				if (missingColumns || !appOk) {
 					done();
-					return res.json(403, {error: missingColumns + ' field is missing'});
+					return res.json(403, {error: 'Application is missing information'});
 				}
 
 				Applications.addApp(client, app, function(err, result) {
@@ -110,8 +111,6 @@ applications.route('/')
 						}
 					);
 				}
-
-				client.end();
 			});	//	end deleteAllApps
 		});	//	end pg.connect
 	});
@@ -120,6 +119,7 @@ applications.route('/:id')
 	.get(function(req, res) {
 		pg.connect(db, function(err, client, done) {
 			if (err) {
+				done();
 				return res.json(500, {error: err});
 			}
 
@@ -134,8 +134,6 @@ applications.route('/:id')
 				} else {
 					res.json(500, err);
 				}
-
-				client.end();
 			});
 		});
 	})
@@ -150,6 +148,7 @@ applications.route('/:id')
 	.delete(function(req, res) {
 		pg.connect(db, function(err, client, done) {
 			if (err) {
+				done();
 				return res.json(500, {error: err});
 			}
 
@@ -160,14 +159,56 @@ applications.route('/:id')
 				if (!err && result) {
 					res.json(200, {"result": result + " app with id " + id + " deleted." });
 				} else if (!err) {
-					res.json(404, {"error": "Couldn't find application with id\t" + id});
+					res.json(404, {"error": "Couldn't find application with id " + id});
 				} else {
 					res.json(500, {error: err});
 				}
-
-				client.end();
 			});
 		});
+	});
+
+
+applications.route('/:id/approve')
+	.get(function(req, res) {
+		res.json(200, {test: 'hi!'});
+	})
+	.post(function(req, res) {
+		pg.connect(db, function(err, client, done) {
+			if (err) {
+				done();
+				return res.json(500, {error: err});
+			}
+
+			var id = req.params.id;
+			var ts = req.body.timeslot;
+			Applications.getAppById(client, id, function(err, app) {
+				if (err) {
+					done();
+					return res.json(500, {error: err});
+
+				} else if (!err && !app) {
+					done();
+					return res.json(404, {error: "Couldn't find application with id " + id});
+
+				} else {
+					var appOk = utils.appOk(app, ts);
+					if (!appOk) {
+						done();
+						return res.json(403, {error: "Application is missing required information. Please review"});
+					} else {
+
+						Applications.approveApp(client, app, ts, function(err, result) {
+							done();
+							if (!err && result) {
+								res.json(201, {result: result});
+							} else {
+								res.json(500, {error: err});
+							}
+						});	//	end approveApp
+					}
+				}
+			});	//	end getAppById
+		});	//	end pg.connect
 	});
 
 

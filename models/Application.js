@@ -1,4 +1,9 @@
 var Apps = {};
+var User = require('./User');
+var Show = require('./Show');
+var Schedule = require('./Schedule');
+var forEachAsync = require('forEachAsync').forEachAsync;
+
 
 /**
   *
@@ -114,7 +119,11 @@ Apps.getAppById = function(client, app_id, cb) {
     if (err) {
       return cb(err);
     } else {
-      cb(null, result.rows[0]);
+      if (!result.rows.length > 0) {
+  			cb(null, null);
+  		} else {
+  			cb(null, result.rows[0]);
+  		}
     }
   });
 }
@@ -134,6 +143,74 @@ Apps.deleteAppById = function(client, app_id, cb) {
     } else {
       cb(null, result.rowCount);
     }
+  });
+}
+
+Apps.approveApp = function(client, app, ts, cb) {
+  var userFields = ['first_name', 'last_name', 'phone', 'email',
+                    'grad_year', 'mac_id', 'iclass'];
+  var showFields = ['title', 'blurb'];
+  var userInfo = [];
+  var showInfo = {};
+  var numUsers = app.email.length;
+
+  //  parse user arrays into an array of JSON objs, one per user
+  for (var i=0; i<numUsers; i++) {
+    userInfo[i] = {};
+    for (var f in userFields) {
+      var field = userFields[f];
+      userInfo[i][field] = app[field][i];
+    }
+  }
+  for (var f in showFields) {
+    var field = showFields[f];
+    showInfo[field] = app[field];
+  }
+
+  var res = {};
+  res.users = [];
+  res.show;
+  res.num_hosts = 0;
+  res.timeslot = null;
+
+  //  add users
+  forEachAsync(userInfo, function(next, usr, i, arr) {
+    usr['hash'] = 'xxx';
+    User.addUser(client, usr, function(err, result) {
+      if (err) return cb(err);
+      res.users.push(result.rows[0]);
+      next();
+    });
+  }).then(function() {
+
+    //  add show
+    Show.addShow(client, showInfo, function(err ,result) {
+      if (err) return cb(err);
+      res.show = result.rows[0];
+
+      //  add hosts
+      forEachAsync(res.users, function(next, user, i ,arr) {
+        Show.addHost(client, res.show.id, user.id, function(err, result) {
+          if (err) return cb(err);
+          res.num_hosts += result.rowCount;
+          next();
+        });
+      }).then(function() {
+
+        //  post to schedule
+        var slot = {timeslot: ts, show_id: res.show.id};
+        Schedule.scheduleShow(client, slot, function(err, result) {
+          if (err) return cb(err);
+          res.timeslot = result[0].timeslot;
+
+          //  delete application
+          Apps.deleteAppById(client, app.id, function(err ,result) {
+            if (err) return cb(err);
+            cb(null, res);
+          }); //  end deleteAppById
+        }); //  end scheduleShow
+      });
+    }); //  end addShow
   });
 }
 
