@@ -7,7 +7,6 @@ fake.makeRandomUser = function makeRandomUser() {
   user.last_name = faker.name.lastName();
   user.phone = fake.getRandomInt(100000000000000, 999999999999999).toString();
   user.email = faker.internet.email();
-  user.hash = faker.internet.password();
   user.grad_year = fake.getRandomInt(1950, 2018);
   user.mac_id = fake.getRandomInt(100000000, 999999999);
   user.iclass = fake.getRandomInt(10000, 99999);

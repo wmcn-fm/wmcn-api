@@ -22,14 +22,10 @@ utils.getValid = function(table, cb) {
 
 utils.randomProperty = function (type) {
     var userKeys = ['first_name', 'last_name', 'phone',
-                'email', 'hash', 'grad_year', 'mac_id', 'iclass'];
+                'email', 'grad_year', 'mac_id', 'iclass'];
     var showKeys = ['title', 'blurb'];
     var plKeys = ['show_id', 'content'];
     var appKeys = userKeys.concat(showKeys, ['availability', 'time_pref', 'description']);
-    var hashIndex = appKeys.indexOf('hash');
-    if (hashIndex > -1) {
-      appKeys.splice(hashIndex, 1);
-    }
 
     switch (type) {
       case 'user':

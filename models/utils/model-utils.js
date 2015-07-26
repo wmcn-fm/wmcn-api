@@ -1,6 +1,8 @@
-var utils = {};
-var Schedule = require('./Schedule');
-var Show = require('./Show');
+var bcrypt = require('bcrypt-nodejs');
+var Schedule = require('../Schedule');
+var Show = require('../Show');
+
+utils = {};
 
 //  @param show_ids: an array of show_ids
 //  checks an array of show_ids against the current schedule;
@@ -30,5 +32,26 @@ utils.sortCurrent = function(client, show_ids, cb) {
   });
 }
 
+
+// random string generator found on stack overflow
+utils.randomString = function(length, chars) {
+    var result = '';
+    for (var i = length; i > 0; --i) result += chars[Math.round(Math.random() * (chars.length - 1))];
+    return result;
+}
+
+utils.ALPHANUMERIC = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+
+//  generate a hash from a given plaintext password;
+//  @param pass: password to be hashed
+//               if null, generates a random ALPHANUMERIC
+utils.getHash = function(pass, cb) {
+  if (!pass) pass = utils.randomString(10, utils.ALPHANUMERIC);
+  bcrypt.hash(pass, null, null, function(err, hashed) {
+    if (err) return cb(err);
+    return cb(null, pass, hashed);
+  });
+}
 
 module.exports = utils;

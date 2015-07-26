@@ -175,7 +175,6 @@ Apps.approveApp = function(client, app, ts, cb) {
 
   //  add users
   forEachAsync(userInfo, function(next, usr, i, arr) {
-    usr['hash'] = 'xxx';
     User.addUser(client, usr, function(err, result) {
       if (err) return cb(err);
       res.users.push(result.rows[0]);

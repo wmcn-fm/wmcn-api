@@ -8,15 +8,11 @@ var utils = {};
 //  @param type: string, the table the object belongs to
 utils.hasMissingColumns = function(obj, type) {
   var userKeys = ['first_name', 'last_name', 'phone',
-              'email', 'hash', 'grad_year', 'mac_id', 'iclass'];
+              'email', 'grad_year', 'mac_id', 'iclass'];
   var showKeys = ['title', 'blurb'];
   var scheduleKeys = ['timeslot', 'show_id'];
   var plKeys = ['show_id', 'content'];
   var appKeys = userKeys.concat(showKeys, ['availability', 'time_pref', 'description']);
-  var hashIndex = appKeys.indexOf('hash');
-  if (hashIndex > -1) {
-    appKeys.splice(hashIndex, 1);
-  }
 
   switch(type) {
     case 'user':
