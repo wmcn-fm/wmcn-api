@@ -6,7 +6,7 @@ var db = config.db;
 var Users = require('../models/User');
 var Shows = require('../models/Show');
 var api = require('../models/api');
-var utils = require('./route-utils');
+var utils = require('./utils/route-utils');
 
 
 users.route('/')

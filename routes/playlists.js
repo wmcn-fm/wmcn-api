@@ -5,7 +5,7 @@ var config = require('../config/config')();
 var db = config.db;
 var Playlists = require('../models/Playlist');
 var api = require('../models/api');
-var utils = require('./route-utils');
+var utils = require('./utils/route-utils');
 
 playlists.route('/')
 	.get(function(req, res) {
@@ -64,7 +64,7 @@ playlists.route('/')
 				var missingColumns = utils.hasMissingColumns(pl, 'playlist');
 				if (missingColumns) {
 					done();
-					return res.json(403, {error: missingColumns + ' field is missing'});
+					return res.json(403, {error: 'Playlist is missing information'});
 				}
 
 				Playlists.addPlaylist(client, pl, function(err, result) {

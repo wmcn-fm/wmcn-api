@@ -4,11 +4,7 @@ var pg = require('pg');
 var config = require('../config/config')();
 var db = config.db;
 var Applications = require('../models/Application');
-var utils = require('./route-utils');
-
-
-//  for testing/development only:
-var faker = require('../test/fake');
+var utils = require('./utils/route-utils');
 
 
 applications.route('/')

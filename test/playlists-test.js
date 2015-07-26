@@ -74,7 +74,7 @@ describe('playlists', function() {
         expect(e).to.eql(null);
         expect(res.statusCode).to.equal(403);
         expect(res.body).to.only.have.key('error');
-        expect(res.body.error).to.eql(randomProp + ' field is missing');
+        expect(res.body.error).to.eql('Playlist is missing information');
         done();
       });
     });  // end catch missing col

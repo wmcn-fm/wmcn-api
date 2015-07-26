@@ -5,11 +5,7 @@ var config = require('../config/config')();
 var db = config.db;
 var Schedule = require('../models/Schedule');
 var api = require('../models/api');
-var utils = require('./route-utils');
-
-//  for testing/development only:
-var faker = require('../test/fake');
-var utils = require('../test/utils');
+var utils = require('./utils/route-utils');
 
 schedule.route('/')
   .get(function(req, res) {

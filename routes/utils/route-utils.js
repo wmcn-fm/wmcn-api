@@ -46,4 +46,26 @@ function checkColumns(obj, keys) {
   return false;
 }
 
+//  @param app: a JSON object representing row from the application table
+//  performs a perfunctory check to make sure the proper # of info present inthe app
+//  @return true if every user has submitted their required info and the show has
+//  a title and blurb, as well as a timeslot
+utils.appOk = function(app) {
+  var numUsers = app.email.length;
+  var userFields = [app.first_name, app.last_name, app.phone, app.grad_year, app.mac_id, app.iclass];
+  var showFields = [app.title, app.blurb];
+
+  for (var field in userFields) {
+    if ( !userFields[field] || userFields[field].length !== numUsers) {
+      return false;
+    }
+  }
+
+  for (var field in showFields) {
+    if (!showFields[field]) return false;
+  }
+
+  return true;
+}
+
 module.exports = utils;
