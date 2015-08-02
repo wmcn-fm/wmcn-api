@@ -30,8 +30,6 @@ users.route('/')
 					} else {
 						res.json(200, {users: result});
 					}
-
-					client.end();
 				}); //  end Users.getAllUsers
 			} else {
 
@@ -131,6 +129,7 @@ users.route('/')
 	.delete(function(req, res) {
 		pg.connect(db, function(err, client, done) {
 			if (err) {
+				done();
 				return res.json(500, {error: err});
 			}
 
@@ -142,8 +141,6 @@ users.route('/')
 				} else {
 					res.json(200, {result: "deleted " + result + " users"});
 				}
-
-				client.end();
 			});  // end Users.delete
 		}); //  end pg.connect
 	});
@@ -155,6 +152,7 @@ users.route('/:id')
 	.get(function(req, res) {
 		pg.connect(db, function(err, client, done) {
 			if (err) {
+				done();
 				return res.json(500, {error: err});
 			}
 
@@ -169,8 +167,6 @@ users.route('/:id')
 				} else {
 					res.json(500, {error: err});
 				}
-
-				client.end();
 			});
 		});
 	})
@@ -205,6 +201,7 @@ users.route('/:id')
 	.delete(function(req, res) {
 		pg.connect(db, function(err, client, done) {
 			if (err) {
+				done();
 				return res.json(500, {error: err});
 			}
 
@@ -219,13 +216,8 @@ users.route('/:id')
 						if (err) {
 							res.json(500, {error: err});
 						} else {
-
-							//	FIX ME: why does the message not send even when the status code does
-							//					and the action is completed?
 							res.json(200, {message: "deleted user " + user_id});
 						}
-
-						client.end();
 					});	//	end Users.delete
 				} else {
 					return res.json(statusCode, result);
@@ -322,7 +314,6 @@ users.route('/:id/shows/current')
 						res.json(500, {error: err});
 					}
 				});
-
 		});	//	end pg.connect
 	})	//	end .get
 
