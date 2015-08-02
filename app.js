@@ -14,6 +14,7 @@ var playlists = require('./routes/playlists');
 var schedule = require('./routes/schedule');
 var applications = require('./routes/applications');
 var hosts = require('./routes/hosts');
+var login = require('./routes/login');
 
 var app = express();
 
@@ -28,17 +29,18 @@ app.use(bodyParser.urlencoded());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.get('/', function(req, res) {
-  var mdFile = fs.readFileSync('./README.md', 'utf8');
-  res.send(marked(mdFile));
-});
-
 app.use('/users', users);
 app.use('/shows', shows);
 app.use('/playlists', playlists);
 app.use('/schedule', schedule);
 app.use('/applications', applications);
 app.use('/hosts', hosts);
+app.use('/login', login);
+
+app.get('/', function(req, res) {
+  var mdFile = fs.readFileSync('./README.md', 'utf8');
+  res.send(marked(mdFile));
+});
 
 /// catch 404 and forward to error handler
 app.use(function(req, res, next) {

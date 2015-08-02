@@ -26,6 +26,7 @@ utils.randomProperty = function (type) {
     var showKeys = ['title', 'blurb'];
     var plKeys = ['show_id', 'content'];
     var appKeys = userKeys.concat(showKeys, ['availability', 'time_pref', 'description']);
+    var loginKeys = ['user_id', 'hash'];
 
     switch (type) {
       case 'user':
@@ -36,6 +37,8 @@ utils.randomProperty = function (type) {
         return plKeys[plKeys.length * Math.random() << 0];
       case 'app':
         return appKeys[appKeys.length * Math.random() << 0];
+      case 'login':
+        return loginKeys[loginKeys.length * Math.random() << 0];
     }
 };
 
