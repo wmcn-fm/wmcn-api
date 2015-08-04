@@ -16,7 +16,7 @@ $ npm install
 With postgres running:
 
 ```shell
-	npm run build
+$ npm run build
 		#	creates database and sets the tables
 ```
 `dropdb wmcn_test` to clear the database
@@ -25,7 +25,7 @@ With postgres running:
 
 ```shell
 #	one-liner:
-	npm run deploy
+$ npm run deploy
 		# builds the db and serves the app on default port (3001) using forever
 
 #	otherwise...
@@ -41,7 +41,7 @@ $ sudo NODE_ENV=production USER=username PW=productionpw PORT=80 DB=production n
 ###Test
 With the app running:
 ```shell
-npm test
+$ npm test
 ```
 
 ## v0.1 documentation
@@ -311,6 +311,19 @@ npm test
 		- **Error**:
 			- **Status code**: `404`
 			- **Response body**: `{error: No Playlists found for show <id}`
+- **Method**: `POST`
+	- **Description**: add one playlist to the table
+	- **Request params**: *none*
+	- **Request body**: `playlist` object containing:
+		- **required**:
+			- `show_id` (int, valid show ID), `content` (string)
+	- **Response**:
+		- **Success**:
+			- **Status code**: `201`
+			- **Response body**: `{"result":"1 playlist created.", "new_playlist": <playlist obj>}`
+		- **Error**:
+			- **Status code**: `500`
+			- **Response body**: `{error: '...''}`
 
 
 ####Playlists

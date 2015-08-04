@@ -255,7 +255,7 @@ describe('show route', function() {
     }); //  end init empty
 
     it("should add a playlist", function(done) {
-      superagent.post(root + '/playlists')
+      superagent.post(root + '/shows/' + show.id + '/playlists')
       .send({playlist: pl1})
       .end(function(e, res) {
         expect(e).to.eql(null);
@@ -265,7 +265,7 @@ describe('show route', function() {
         expect(res.body.new_playlist.content).to.equal(pl1.content);
         pl1 = res.body.new_playlist;
 
-        superagent.post(root + '/playlists')
+        superagent.post(root + '/shows/' + show.id + '/playlists')
         .send({playlist: pl2})
         .end(function(e, res) {
           expect(e).to.eql(null);

@@ -4,6 +4,7 @@ var pg = require('pg');
 var config = require('../config/config')();
 var db = config.db;
 var Shows = require('../models/Show');
+var Playlists = require('../models/Playlist');
 var api = require('../models/api');
 var utils = require('./utils/route-utils');
 
@@ -244,6 +245,43 @@ shows.route('/:id/playlists')
         }
       });
     }); //  end pg.connect
-  }); //  end .get
+  }) //  end .get
+
+  //	POST a new playlist to the table
+	.post(function(req, res) {
+		pg.connect(db, function(err, client, done) {
+			if (err) {
+				done();
+				return res.json(500, {error: err});
+			}
+
+			var pl = req.body.playlist;
+			if (!pl) {
+				done();
+				return res.json(403, {error: 'playlist object is ' + pl });
+			} else {
+				var missingColumns = utils.hasMissingColumns(pl, 'playlist');
+				if (missingColumns) {
+					done();
+					return res.json(403, {error: 'Playlist is missing information'});
+				}
+
+				Playlists.addPlaylist(client, pl, function(err, result) {
+					done();
+
+					if (err) {
+						return res.json(500, {error: err.detail});
+					} else {
+						res.json(201,
+							{
+								"result": result.rowCount + " playlist created",
+								"new_playlist": result.rows[0]
+							}
+						);
+					}
+				});	//	end pl.addPlaylist
+			}
+		});	//	end pg.connect
+	})	//	end .post
 
 module.exports = shows;
