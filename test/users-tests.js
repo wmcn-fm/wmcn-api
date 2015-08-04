@@ -57,6 +57,7 @@ describe('user route', function() {
         expect(res.statusCode).to.eql(200);
         expect(res.body.user.id).to.eql(newUser.id);
         expect(res.body.user.email).to.eql(fakeUser.email);
+        expect(res.body.user.access).to.equal(1);
         done();
       });
     });  // end retrieve new user
