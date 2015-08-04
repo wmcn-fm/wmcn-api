@@ -8,6 +8,8 @@ var bodyParser = require('body-parser');
 var fs = require('fs');
 var marked = require('marked');
 
+var auth = require('./lib/auth');
+
 var users = require('./routes/users');
 var shows = require('./routes/shows');
 var playlists = require('./routes/playlists');
@@ -29,6 +31,7 @@ app.use(bodyParser.urlencoded());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use(auth.checkForToken());
 app.use('/users', users);
 app.use('/shows', shows);
 app.use('/playlists', playlists);

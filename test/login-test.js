@@ -19,17 +19,15 @@ describe('login', function() {
 
   describe('logging in', function() {
 
-    it('should log in', function(done) {
+    it('should create token', function(done) {
       superagent.post(root + '/login')
       .send({user_id: user.id, hash: user.hash})
       .end(function(e, res) {
         expect(e).to.eql(null);
         expect(res.statusCode).to.equal(201);
-        expect(res.body).to.only.have.keys('user', 'loggedIn', 'token');
+        expect(res.headers).to.have.key('x-access-token')
+        expect(res.body).to.only.have.keys('loggedIn', 'token');
         expect(res.body.loggedIn).to.be.ok();
-
-        //  FIXME: why does jwt append exp & iat to user obj?
-        // expect(res.body.user).to.eql(user);
         done();
       });
     }); //  end should log in

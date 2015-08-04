@@ -35,7 +35,8 @@ login.route('/')
           if (hash !== user.hash) {
             res.json(401, {error: 'Incorrect password', loggedIn: false});
           } else {
-            res.json(201, {user: user, loggedIn: true, token: auth.createToken(user) });
+            var token = auth.createToken({id: user.id, access: user.access});
+            res.set('x-access-token', token).json(201, {loggedIn: true, token: token });
           }
         }
       }); //  end getUserById
