@@ -59,7 +59,7 @@ describe('playlists', function() {
         expect(e).to.eql(null);
         expect(res.body).to.only.have.key('error');
         expect(res.body.error).to.eql('playlist object is ' + badPl);
-        expect(res.statusCode).to.equal(403);
+        expect(res.statusCode).to.equal(400);
         done();
       });
     }); //  end undefined pl
@@ -72,7 +72,7 @@ describe('playlists', function() {
       .send({playlist: badPl})
       .end(function(e, res) {
         expect(e).to.eql(null);
-        expect(res.statusCode).to.equal(403);
+        expect(res.statusCode).to.equal(400);
         expect(res.body).to.only.have.key('error');
         expect(res.body.error).to.eql('Playlist is missing information');
         done();

@@ -19,7 +19,7 @@ login.route('/')
       var hash = req.body.hash;
       if (!user_id || !hash) {
         done();
-        return res.json(500, {error: 'Request body is missing required information', loggedIn: false});
+        return res.json(400, {error: 'Request body is missing required information', loggedIn: false});
       }
 
       Users.getUserById(client, user_id, function(err, result) {
@@ -28,7 +28,7 @@ login.route('/')
         if (err) {
           res.json(500, {error: err, loggedIn: false});
         } else if (!err && result.length < 1) {
-          res.json(404, {error: 'User ' + user_id + ' not found', loggedIn: false});
+          res.json(400, {error: 'User ' + user_id + ' not found', loggedIn: false});
         } else {
           var user = result[0];
 

@@ -42,13 +42,13 @@ applications.route('/')
 			var app = req.body.app;
 			if (!app) {
 				done();
-				return res.json(403, {error: 'app object is ' + app});
+				return res.json(400, {error: 'app object is ' + app});
 			} else {
 				var missingColumns = utils.hasMissingColumns(app, 'app');
 				var appOk = utils.appOk(app);
 				if (missingColumns || !appOk) {
 					done();
-					return res.json(403, {error: 'Application is missing information'});
+					return res.json(400, {error: 'Application is missing information'});
 				}
 
 				Applications.addApp(client, app, function(err, result) {
@@ -71,7 +71,7 @@ applications.route('/')
 
 	//	PUT an update to all applications in the table
 	.put(function(req, res) {
-		res.json(500, {error: 'not configured'});
+		res.json(501, {error: 'not configured'});
 		// pg.connect(db, function(err, client, done) {
 		// 	if (err) {
 		// 		return res.json(500, {error: err});
@@ -169,9 +169,6 @@ applications.route('/:id')
 
 
 applications.route('/:id/approve')
-	.get(function(req, res) {
-		res.json(200, {test: 'hi!'});
-	})
 	.post(function(req, res) {
 		pg.connect(db, function(err, client, done) {
 			if (err) {
@@ -194,7 +191,7 @@ applications.route('/:id/approve')
 					var appOk = utils.appOk(app, ts);
 					if (!appOk) {
 						done();
-						return res.json(403, {error: "Application is missing required information. Please review"});
+						return res.json(400, {error: "Application is missing required information. Please review"});
 					} else {
 
 						Applications.approveApp(client, app, ts, function(err, result) {

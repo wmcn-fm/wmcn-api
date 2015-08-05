@@ -134,7 +134,7 @@ describe('schedule', function() {
       superagent.get(root + '/schedule/' + badTs)
       .end(function(e, res) {
         expect(e).to.eql(null);
-        expect(res.statusCode).to.equal(403);
+        expect(res.statusCode).to.equal(400);
         expect(res.body).to.only.have.key('error');
         expect(res.body.error).to.equal('timeslot ' + badTs + ' is out of range 0-167');
         done();
@@ -146,7 +146,7 @@ describe('schedule', function() {
       superagent.get(root + '/schedule/' + badTs)
       .end(function(e, res) {
         expect(e).to.eql(null);
-        expect(res.statusCode).to.equal(403);
+        expect(res.statusCode).to.equal(400);
         expect(res.body).to.only.have.key('error');
         expect(res.body.error).to.equal('timeslot ' + badTs + ' is out of range 0-167');
         done();
@@ -208,7 +208,7 @@ describe('schedule', function() {
       superagent.del(root + '/schedule/xyz')
       .end(function(e, res) {
         expect(e).to.eql(null);
-        expect(res.statusCode).to.equal(403);
+        expect(res.statusCode).to.equal(400);
         expect(res.body).to.only.have.key('error');
         expect(res.body.error).to.equal("timeslot xyz is out of range 0-167");
         done();

@@ -59,12 +59,12 @@ playlists.route('/')
 			var pl = req.body.playlist;
 			if (!pl) {
 				done();
-				return res.json(403, {error: 'playlist object is ' + pl });
+				return res.json(400, {error: 'playlist object is ' + pl });
 			} else {
 				var missingColumns = utils.hasMissingColumns(pl, 'playlist');
 				if (missingColumns) {
 					done();
-					return res.json(403, {error: 'Playlist is missing information'});
+					return res.json(400, {error: 'Playlist is missing information'});
 				}
 
 				Playlists.addPlaylist(client, pl, function(err, result) {
@@ -98,7 +98,6 @@ playlists.route('/')
 
 				if (err) {
 					res.json(500, {error: err});
-					// res.json(200, {message: '/returns the id of the deleted playlist'});
 				} else {
 					res.json(200, {result: result});
 				}
@@ -114,6 +113,7 @@ playlists.route('/:id')
 
 		pg.connect(db, function(err, client, done) {
 			if (err) {
+				done();
 				return res.json(500, {error: err});
 			}
 
@@ -127,8 +127,6 @@ playlists.route('/:id')
 				} else {
 					res.json(500, {error: err});
 				}
-
-				client.end();
 			});	//	end getPlaylist
 		});	//	end pg.connect
 	})	//	end .get
@@ -136,7 +134,7 @@ playlists.route('/:id')
 	//	PUT one playlist by its id
 	.put(function(req, res) {
 		var id = req.params.id;
-		res.json(500, {error: 'route not implemented'});
+		res.json(501, {error: 'route not implemented'});
 		//	TODO: implement this route
 		// res.json(200, {playlist: '/returns ' + id + ' s updated playlist document'});
 	})
@@ -146,6 +144,7 @@ playlists.route('/:id')
 
 		pg.connect(db, function(err, client, done) {
 			if (err) {
+				done();
 				return res.json(500, err);
 			}
 
@@ -159,8 +158,6 @@ playlists.route('/:id')
 				} else {
 					res.json(500, err);
 				}
-
-				client.end();
 			});	//	end Playlists.delete
 		});	//	end pg.connect
 	});	//	end .delete

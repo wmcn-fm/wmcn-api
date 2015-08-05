@@ -7,6 +7,7 @@ var Users = require('../models/User');
 var Shows = require('../models/Show');
 var api = require('../models/api');
 var utils = require('./utils/route-utils');
+var auth = require('../lib/auth');
 
 
 users.route('/')
@@ -15,12 +16,12 @@ users.route('/')
 	.get(function(req, res) {
 		pg.connect(db, function(err, client, done) {
 			if(err) {
+				done();
 				return res.json(500, {error: err});
 			}
 
 			if (!req.query.email) {
 				Users.getAllUsers(client, function(err, result) {
-					//call `done()` to release the client back to the pool
 					done();
 
 					if (err) {
@@ -60,12 +61,12 @@ users.route('/')
 			var user = req.body.user;
 			if (!user) {
 				done();
-				return res.json(403, {error: 'user object is ' + user});
+				return res.json(400, {error: 'user object is ' + user});
 			} else {
 				var missingColumns = utils.hasMissingColumns(user, 'user');
 				if (missingColumns) {
 					done();
-					return res.json(403, {error: missingColumns + ' field is missing'});
+					return res.json(400, {error: missingColumns + ' field is missing'});
 				}
 
 				api.get('/users?email=' + user.email, function(err, result, statusCode) {
@@ -104,7 +105,7 @@ users.route('/')
 	//	FIXE ME: test this route
 	//  PUT all users
 	.put(function(req, res) {
-		res.json(500, {error: 'not configured'});
+		res.json(501, {error: 'not configured'});
 		// pg.connect(db, function(err, client, done) {
 		// 	if (err) {
 		// 		return res.json(500, {error: err});
@@ -173,7 +174,7 @@ users.route('/:id')
 	//	PUT an update to one user
 	//		@param id: a user's id number
 	.put(function(req, res) {
-		res.json(500, {error: 'not configured!'});
+		res.json(501, {error: 'not configured!'});
 		// pg.connect(db, function(err, client, done) {
 		// 	if (err) {
 		// 		return res.json(500, {error: err});
@@ -208,6 +209,7 @@ users.route('/:id')
 			var user_id = req.params.id;
 			api.get('/users/' + user_id, function(err, result, statusCode) {
 				if (err) {
+					done();
 					return res.json(500, {error: err});
 				} else if (!err && result && statusCode === 200) {
 					Users.deleteUserById(client, user_id, function(err, result) {
@@ -220,6 +222,7 @@ users.route('/:id')
 						}
 					});	//	end Users.delete
 				} else {
+					done();
 					return res.json(statusCode, result);
 				}
 			});	//end api.get

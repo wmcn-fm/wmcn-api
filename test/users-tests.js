@@ -92,7 +92,7 @@ describe('user route', function() {
           expect(e).to.eql(null);
           expect(res.body).to.only.have.key('error');
           expect(res.body.error).to.eql('user object is ' + badUser);
-          expect(res.statusCode).to.equal(403);
+          expect(res.statusCode).to.equal(400);
           done();
         });
       }); //  end undefined
@@ -104,7 +104,7 @@ describe('user route', function() {
         .send({user: badUser})
         .end(function(e, res) {
           expect(e).to.eql(null);
-          expect(res.statusCode).to.equal(403);
+          expect(res.statusCode).to.equal(400);
           expect(res.body).to.only.have.key('error');
           expect(res.body.error).to.eql(randomProp + ' field is missing');
           done();

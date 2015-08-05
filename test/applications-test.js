@@ -55,7 +55,7 @@ describe('applications', function() {
       .send({app: badApp})
       .end(function(e, res) {
         expect(e).to.eql(null);
-        expect(res.statusCode).to.equal(403);
+        expect(res.statusCode).to.equal(400);
         expect(res.body).to.only.have.key('error');
         expect(res.body.error).to.eql('app object is ' + badApp);
         done();
@@ -70,7 +70,7 @@ describe('applications', function() {
       .send({app: badApp})
       .end(function(e, res) {
         expect(e).to.eql(null);
-        expect(res.statusCode).to.equal(403);
+        expect(res.statusCode).to.equal(400);
         expect(res.body).to.only.have.key('error');
         expect(res.body.error).to.eql('Application is missing information');
         done();
@@ -86,7 +86,7 @@ describe('applications', function() {
       .send({app: badApp})
       .end(function(e, res) {
         expect(e).to.eql(null);
-        expect(res.statusCode).to.equal(403);
+        expect(res.statusCode).to.equal(400);
         expect(res.body).to.only.have.key('error');
         expect(res.body.error).to.equal('Application is missing information');
         done();
@@ -192,7 +192,7 @@ describe('applications', function() {
         expect(e).to.eql(null);
         expect(res.statusCode).to.equal(201);
         expect(res.body).to.only.have.key('result');
-        
+
         var result = res.body.result;
         expect(result).to.only.have.keys('users', 'num_hosts', 'timeslot', 'show');
         expect(result.users).to.be.an('array');

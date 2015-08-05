@@ -28,7 +28,7 @@ describe('login', function() {
         expect(res.headers).to.have.key('x-access-token')
         expect(res.body).to.only.have.keys('loggedIn', 'token');
         expect(res.body.loggedIn).to.be.ok();
-        done();
+        done(); 
       });
     }); //  end should log in
 
@@ -40,7 +40,7 @@ describe('login', function() {
       .send({user_id: badLogin.user_id, hash: badLogin.hash})
       .end(function(e, res) {
         expect(e).to.eql(null);
-        expect(res.statusCode).to.equal(500);
+        expect(res.statusCode).to.equal(400);
         expect(res.body).to.only.have.keys('error', 'loggedIn');
         expect(res.body.error).to.equal('Request body is missing required information');
         expect(res.body.loggedIn).to.not.be.ok();
@@ -54,7 +54,7 @@ describe('login', function() {
       .send({user_id: rand, hash: user.hash})
       .end(function(e, res) {
         expect(e).to.eql(null);
-        expect(res.statusCode).to.equal(404);
+        expect(res.statusCode).to.equal(400);
         expect(res.body).to.only.have.keys('error', 'loggedIn');
         expect(res.body.error).to.equal('User ' + rand + ' not found');
         expect(res.body.loggedIn).to.not.be.ok();

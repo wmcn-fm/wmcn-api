@@ -11,6 +11,7 @@ schedule.route('/')
   .get(function(req, res) {
     pg.connect(db, function(err, client, done) {
       if (err) {
+        done();
         return res.json(500, {error: err});
       }
 
@@ -30,6 +31,7 @@ schedule.route('/')
   .post(function(req, res) {
     pg.connect(db, function(err, client, done) {
       if (err) {
+        done();
         return res.json(500, {error: err});
       }
 
@@ -48,6 +50,7 @@ schedule.route('/')
   .delete(function(req, res) {
     pg.connect(db, function(err, client, done) {
       if (err) {
+        done();
         return res.json(500, {error: err});
       }
 
@@ -61,8 +64,6 @@ schedule.route('/')
         } else {
           res.json(404, {error: "schedule is empty; no rows to delete"});
         }
-
-        client.end();
       }); //  end
     }); //  end pg.connect
   });
@@ -74,12 +75,12 @@ schedule.route('/:timeslot')
         done();
         return res.json(500, {error: err});
       }
-      var timeslot = req.params.timeslot;
 
+      var timeslot = req.params.timeslot;
       //  catch invalid params
       if ( !(0 <= timeslot && timeslot <= 167)) {
         done();
-        return res.json(403, {error: 'timeslot ' + timeslot + ' is out of range 0-167'});
+        return res.json(400, {error: 'timeslot ' + timeslot + ' is out of range 0-167'});
       }
 
       Schedule.getShowAtTime(client, timeslot, function(err, result) {
@@ -92,8 +93,6 @@ schedule.route('/:timeslot')
         } else {
           res.json(500, {error: err.detail});
         }
-
-        client.end();
       }); //  end Schedule.getShowAtTime
     }); //  end pg.connect
   })  //  end .get
@@ -107,7 +106,7 @@ schedule.route('/:timeslot')
       //  catch invalid params
       if ( !(0 <= timeslot && timeslot <= 167)) {
         done();
-        return res.json(403, {error: 'timeslot ' + timeslot + ' is out of range 0-167'});
+        return res.json(400, {error: 'timeslot ' + timeslot + ' is out of range 0-167'});
       }
 
       Schedule.deleteShowAtTime(client, timeslot, function(err, result) {

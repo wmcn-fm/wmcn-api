@@ -15,6 +15,7 @@ shows.route('/')
   .get(function(req, res) {
   	pg.connect(db, function(err, client, done) {
   		if (err) {
+        done();
   			return res.json(500, {error: err});
   		}
 
@@ -37,18 +38,19 @@ shows.route('/')
   .post(function(req, res) {
   	pg.connect(db, function(err, client, done) {
   		if (err) {
+        done();
   			return res.json(500, {error: err});
   		}
 
       var show = req.body.show;
       if (!show) {
         done();
-        res.json(403, {error: 'show object is ' + show});
+        res.json(400, {error: 'show object is ' + show});
       } else {
         var missingColumns = utils.hasMissingColumns(show, 'show');
         if (missingColumns) {
           done();
-          return res.json(403, {error: missingColumns + ' field is missing'});
+          return res.json(400, {error: missingColumns + ' field is missing'});
         }
 
         Shows.addShow(client, show, function(err, result) {
@@ -71,7 +73,7 @@ shows.route('/')
 
   //	PUT an update to all shows in the table
   .put(function(req, res) {
-    res.json(500, {error: 'not configured'});
+    res.json(501, {error: 'not configured'});
   	// pg.connect(db, function(err, client, done) {
   	// 	if (err) {
   	// 		res.json(500, {error: err});
@@ -96,6 +98,7 @@ shows.route('/')
   .delete(function(req, res) {
   	pg.connect(db, function(err, client, done) {
       if (err) {
+        done();
         return res.json(500, {error: err});
       }
 
@@ -107,8 +110,6 @@ shows.route('/')
         } else {
           res.json(200, {result: "deleted " + result.rowCount + " shows"});
         }
-
-        client.end();
       });  // end Shows.delete
     }); //  end pg.connect
   });
@@ -136,19 +137,19 @@ shows.route('/:id')
         } else {
         	res.json(500, {error: err});
         }
-
       });
     });
   })
 
   //	PUT an update to one show in the table
   .put(function(req, res) {
-    res.json(500, {error: 'not configured'});
+    res.json(501, {error: 'not configured'});
   })
 
   .delete(function(req, res) {
   	pg.connect(db, function(err, client, done) {
   		if (err) {
+        done();
   			return res.json(500, {error: err});
   		}
 
@@ -163,13 +164,8 @@ shows.route('/:id')
   					if (err) {
   						res.json(500, {error: err.detail});
   					} else {
-
-  						//	FIX ME: why does the message not send even when the status code does
-  						//					and the action is completed?
   						res.json(200, {message: "deleted show " + show_id});
   					}
-
-  					client.end();
   				});	//	end Users.delete
   			} else {
   				return res.json(statusCode, result);
@@ -258,12 +254,12 @@ shows.route('/:id/playlists')
 			var pl = req.body.playlist;
 			if (!pl) {
 				done();
-				return res.json(403, {error: 'playlist object is ' + pl });
+				return res.json(400, {error: 'playlist object is ' + pl });
 			} else {
 				var missingColumns = utils.hasMissingColumns(pl, 'playlist');
 				if (missingColumns) {
 					done();
-					return res.json(403, {error: 'Playlist is missing information'});
+					return res.json(400, {error: 'Playlist is missing information'});
 				}
 
 				Playlists.addPlaylist(client, pl, function(err, result) {
