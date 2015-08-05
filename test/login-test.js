@@ -28,7 +28,11 @@ describe('login', function() {
         expect(res.headers).to.have.key('x-access-token')
         expect(res.body).to.only.have.keys('loggedIn', 'token');
         expect(res.body.loggedIn).to.be.ok();
-        done(); 
+        expect(res.headers['x-access-token']).to.equal(res.body.token);
+
+        console.log(res.headers);
+        console.log(res.body);
+        done();
       });
     }); //  end should log in
 

@@ -45,11 +45,5 @@ login.route('/')
     }); //  end pg.connect
   })
 
-  //  log out
-  .delete(function(req, res) {
-    var user_id = req.body.user_id;
-    res.json(200, {id: user_id, loggedIn: false, result: 'loggin off'})
-  })
-
 
 module.exports = login;
