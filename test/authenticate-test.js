@@ -5,7 +5,7 @@ var root = config.api_root_url;
 var fake = require('./fake');
 var utils = require('./utils');
 
-describe('login', function() {
+describe('authenticate', function() {
   var user;
   before(function(done) {
     superagent.post(root + '/users')
@@ -17,10 +17,10 @@ describe('login', function() {
     });
   }); //  end before
 
-  describe('logging in', function() {
+  describe('authenticating', function() {
 
     it('should create token', function(done) {
-      superagent.post(root + '/login')
+      superagent.post(root + '/authenticate')
       .send({user_id: user.id, hash: user.hash})
       .end(function(e, res) {
         expect(e).to.eql(null);
@@ -29,9 +29,6 @@ describe('login', function() {
         expect(res.body).to.only.have.keys('loggedIn', 'token');
         expect(res.body.loggedIn).to.be.ok();
         expect(res.headers['x-access-token']).to.equal(res.body.token);
-
-        console.log(res.headers);
-        console.log(res.body);
         done();
       });
     }); //  end should log in
@@ -40,7 +37,7 @@ describe('login', function() {
       var badLogin = {user_id: user.id, hash: user.hash};
       var randomProp = utils.randomProperty('login');
       badLogin[randomProp] = null;
-      superagent.post(root + '/login')
+      superagent.post(root + '/authenticate')
       .send({user_id: badLogin.user_id, hash: badLogin.hash})
       .end(function(e, res) {
         expect(e).to.eql(null);
@@ -54,7 +51,7 @@ describe('login', function() {
 
     it('should catch invalid user id', function(done) {
       var rand = fake.getRandomInt(1000, 100000);
-      superagent.post(root + '/login')
+      superagent.post(root + '/authenticate')
       .send({user_id: rand, hash: user.hash})
       .end(function(e, res) {
         expect(e).to.eql(null);
@@ -67,7 +64,7 @@ describe('login', function() {
     }); //  end catch invalid uid
 
     it('should catch bad password', function(done) {
-      superagent.post(root + '/login')
+      superagent.post(root + '/authenticate')
       .send({user_id: user.id, hash: 'ldkhfdslkfhsldkfahdsfa'})
       .end(function(e, res) {
         expect(e).to.eql(null);

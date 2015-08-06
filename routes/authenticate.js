@@ -1,12 +1,12 @@
 var express = require('express');
-var login = express.Router();
+var authenticate = express.Router();
 var pg = require('pg');
 var config = require('../config/config')();
 var db = config.db;
 var Users = require('../models/User');
 var auth = require('../lib/auth');
 
-login.route('/')
+authenticate.route('/')
   //  log in
   .post(function(req, res) {
     pg.connect(db, function(err, client, done) {
@@ -46,4 +46,4 @@ login.route('/')
   })
 
 
-module.exports = login;
+module.exports = authenticate;

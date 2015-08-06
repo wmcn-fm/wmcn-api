@@ -16,7 +16,7 @@ var playlists = require('./routes/playlists');
 var schedule = require('./routes/schedule');
 var applications = require('./routes/applications');
 var hosts = require('./routes/hosts');
-var login = require('./routes/login');
+var authenticate = require('./routes/authenticate');
 
 var app = express();
 
@@ -38,7 +38,7 @@ app.use('/playlists', playlists);
 app.use('/schedule', schedule);
 app.use('/applications', applications);
 app.use('/hosts', hosts);
-app.use('/login', login);
+app.use('/authenticate', authenticate);
 
 app.get('/', function(req, res) {
   var mdFile = fs.readFileSync('./README.md', 'utf8');
