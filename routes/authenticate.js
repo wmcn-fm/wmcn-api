@@ -43,7 +43,7 @@ authenticate.route('/')
 
 
     }); //  end pg.connect
-  })
+  });
 
 authenticate.route('/dev')
   .get(function(req, res) {
@@ -53,7 +53,7 @@ authenticate.route('/dev')
       var token = auth.createToken({id: req.query.id, access: 4});
       res.json(200, {token: token});
     }
-  })
+  });
 
 
 module.exports = authenticate;
