@@ -10,8 +10,16 @@ var utils = require('./utils/model-utils');
 **/
 
 //  GET all users in the table
-Users.getAllUsers = function(client, cb) {
-  var query = client.query("SELECT * FROM users");
+//  @param private: if true, the client does not have a valid
+//                  access token and the response filters out
+//                  sensitive info (eg phone, hash, mac id, etc);
+Users.getAllUsers = function(client, private, cb) {
+  var query;
+  if (private) {
+    query = client.query("SELECT id, first_name, last_name, email, grad_year, created FROM users");
+  } else {
+    query = client.query("SELECT * FROM users");
+  }
 
   query.on('error', function(err) {
     cb(err)
@@ -208,6 +216,41 @@ Users.getCurrentShows = function(client, user_id, cb) {
 }
 
 
+//  staff
+
+Users.getStaff = function(client, level, private, cb) {
+  var query;
+  if (private) {
+    query = "SELECT id, access, first_name, last_name, email, grad_year, created FROM users WHERE users.access >= $1"
+  } else {
+    query = "SELECT * FROM users WHERE users.access >= $1";
+  }
+
+  if (!level) level = 1;
+
+  client.query(query, [level], function(err, result) {
+    if (err) return cb(err);
+    if (!result.rows.length > 0) { cb(null, null);
+    } else {
+      cb(null, result.rows);
+    }
+  });
+}
+
+Users.editStaff = function(client, user_id, level, cb) {
+  var query = "UPDATE users SET access = $1 WHERE id = $2 RETURNING *; "
+  console.log('from promoteStaff: uid:\t%s\tlevel:\t%s', user_id, level);
+  var values = [level, user_id];
+
+  client.query(query, values, function(err, result) {
+    if (err) return cb(err);
+    if (!result.rows.length > 0) {
+      cb(null, null);
+    } else {
+      cb(null, result.rows)
+    }
+  });
+}
 
 
 module.exports = Users;

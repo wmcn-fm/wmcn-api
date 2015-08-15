@@ -303,4 +303,65 @@ describe('user route', function() {
     }); //  end return current shows
   });  // end current shows
 
+  // describe('staff', function(err, ))
+  describe('staff', function(err, result) {
+    var user;
+    var token;
+    before(function(done) {
+      superagent.post(root + '/users')
+      .send({user: fake.makeRandomUser() })
+      .end(function(e, res) {
+        if (e) return console.log(e);
+        user = res.body.new_user;
+
+        superagent.post(root + '/authenticate')
+        .send({user_id: user.id, hash: user.hash})
+        .end(function(e, res) {
+          if (e || !res.body.loggedIn) return console.log(e);
+          token = res.body.token;
+          done();
+        })
+      })
+    }); //  end before
+
+
+    it('should get public staff info only', function(done) {
+      superagent.get(root + '/staff')
+      .end(function(e, res) {
+        expect(e).to.eql(null);
+        expect(res.statusCode).to.equal(200);
+        expect(res.body).to.only.have.key('staff');
+        expect(res.body.staff.length).to.be.above(0)
+        expect(res.body.staff[0]).to.not.have.keys('phone', 'hash', 'mac_id', 'iclass');
+        done();
+      })
+    }); //  end get public staff info
+
+    it('should get all info with token', function(done) {
+      superagent.get(root + '/staff')
+      .set('x-access-token', token)
+      .end(function(e, res) {
+        expect(e).to.eql(null);
+        expect(res.statusCode).to.equal(200);
+        expect(res.body).to.only.have.key('staff');
+        expect(res.body.staff.length).to.be.above(0);
+        expect(res.body.staff[0]).to.have.keys('phone', 'hash', 'mac_id', 'iclass');
+        done();
+      });
+    }); //  end get all info
+
+    it('shuld promote to level 3', function(done) {
+      superagent.post(root + '/staff')
+      .send({id: user.id, level: 3})
+      .end(function(e, res) {
+        expect(e).to.eql(null);
+        expect(res.statusCode).to.equal(200);
+        expect(res.body).to.only.have.keys('result', 'staff');
+        expect(res.body.result).to.equal('Updated user ' + user.id + ' to access level 3');
+        expect(res.body.staff[0].access).to.equal(3);
+        done();
+      });
+    }); //  end promote
+  });
+
 }); //  end user route

@@ -65,6 +65,7 @@ $ npm test
 	- [`/current`](#schedule-current)
 - [`/applications`](#applications)
 - [`/hosts`](#hosts)
+- [`/staff`](#staff)
 - [`/articles`](#articles)
 
 ####Authenticate
@@ -94,7 +95,7 @@ $ npm test
 	- **Description**: get all users in the table
 	- **Request params**: *none*
 	- **Request body**: *none*
-	- **Request queries**:
+	- **Request queries**: `x-access-token` [optional]: if included, will display all columns in the table; otherwise, will filter out sensetive info (phone, mac_id, iclass, hash);
 		- **optional**: `email`: user email address
 		- **example**: `http://api.wmcn.fm/v0/users?email=wmcn@macalester.edu`
 	- **Response**:
@@ -564,6 +565,42 @@ $ npm test
 		- **Error**:
 			- **Status code**: `500`
 			- **Response body**: `{error: "..."}`
+
+####Staff
+##### <a name="staff">`/staff`</a>
+
+- **Method**: `GET`
+	- **Description**: get all staff members, i.e. current users
+	- **Request headers**: [optional]: `x-access-token`: if present, will return *all* user info; otherwise, filters out sensetive info (pw hash, phone, mac id, iclass);
+	- **Request params**: *none*
+	- **Request body**: *none*
+	- **Request query**: [optional]: `level`: returns users with an access level above or equal to the query. If not present, query defaults to `1`
+	- **Response**:
+		- **Success**:
+			- **Status code**: `200`
+			- **Response body**: `{staff: [...]}`
+			- **Description**: An array of users
+		- **Error**:
+			- **Status code**: `400`
+			- **Response body**: `{error: "No staff found with access level <level>", staff: []}`
+
+- **Method**: `POST`
+	- **Description**: adjust a user's access level
+	- **Request body**: `id`: user ID number [required]; `level`: user's new access level [required in body or query];
+	- **Request query**: `level`: user's new access level [required in body or query];
+	- **Response**:
+		- **Success**:
+			- **Status code**: `200`
+			- **Response body**: `{ result: 'Updated user <id> to access level <level>',
+  staff:
+   [ { id: <id>,
+       access: <level>,
+       first_name: ...
+			 } ] }`
+		- **Error**:
+			- **Status code**: `404`
+			- **Response body**: `{error: "No staff found with access level <level>", staff: []}`
+			- **Description**: user <id> doens't exist
 
 ####Hosts
 ##### <a name="hosts">`/hosts`</a>

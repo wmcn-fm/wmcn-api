@@ -21,7 +21,11 @@ users.route('/')
 			}
 
 			if (!req.query.email) {
-				Users.getAllUsers(client, function(err, result) {
+				var loggedIn = req.headers['x-access-token'];
+				var restrictPrivate = !loggedIn;
+
+				console.log(loggedIn, restrictPrivate);
+				Users.getAllUsers(client, restrictPrivate, function(err, result) {
 					done();
 
 					if (err) {
