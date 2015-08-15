@@ -45,5 +45,15 @@ authenticate.route('/')
     }); //  end pg.connect
   })
 
+authenticate.route('/dev')
+  .get(function(req, res) {
+    if (process.env.NODE_ENV == 'production') {
+      res.json(500, {error: 'unavailable in production mode'});
+    } else {
+      var token = auth.createToken({id: req.query.id, access: 4});
+      res.json(200, {token: token});
+    }
+  })
+
 
 module.exports = authenticate;
