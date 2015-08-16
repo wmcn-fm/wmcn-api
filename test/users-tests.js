@@ -19,6 +19,53 @@ describe('user route', function() {
     });
   }); //  end before
 
+  var user;
+  var token1;
+  var token2;
+  var token3;
+  var token4;
+  before(function(done) {
+    superagent.get(root + '/authenticate/dev')
+    .query({id: 1, access: 1})
+    .end(function(e, res) {
+      if (e) return console.log(e);
+      token1 = res.body.token;
+
+      superagent.get(root + '/authenticate/dev')
+      .query({id: 2, access: 2})
+      .end(function(e, res) {
+        if (e) return console.log(e);
+        token2 = res.body.token;
+
+        superagent.get(root + '/authenticate/dev')
+        .query({id: 3, access: 3})
+        .end(function(e, res) {
+          if (e) return console.log(e);
+          token3 = res.body.token;
+
+          superagent.get(root + '/authenticate/dev')
+          .query({id: 4, access: 4})
+          .end(function(e, res) {
+            if (e) return console.log(e);
+            token4 = res.body.token;
+
+            superagent.del(root + '/hosts')
+            .set('x-access-token', token4)
+            .end(function(e, res) {
+              if (e) return console.log(e);
+            });
+            superagent.del(root + '/users')
+            .set('x-access-token', token4)
+            .end(function(e, res) {
+              if (e) return console.log(e);
+              done();
+            });
+          }); //  token4
+        })  //  token3
+      })  //  token2
+    })  //  token1
+  }); //  end before
+
   it('should initially get an empty table', function (done) {
     superagent.get(root + '/users')
     .end(function (e,res) {
@@ -38,8 +85,32 @@ describe('user route', function() {
       done();
     });
 
+    it('should deny no token/insufficient access', function(done) {
+      superagent.post(root + '/users')
+      .send({user: fakeUser})
+      .end(function(e, res) {
+        expect(e).to.eql(null);
+        expect(res.statusCode).to.equal(403);
+        expect(res.body).to.only.have.keys('error', 'loggedIn');
+        expect(res.body.loggedIn).to.not.be.ok();
+        expect(res.body.error).to.equal('Access token required.');
+
+        superagent.post(root + '/users')
+        .send({user: fakeUser})
+        .set('x-access-token', token1)
+        .end(function(e, res) {
+          expect(e).to.eql(null);
+          expect(res.statusCode).to.equal(403);
+          expect(res.body).to.only.have.key('error');
+          expect(res.body.error).to.equal('Request requires access level 3');
+          done();
+        });
+      });
+    }); //  end deny
+
     it('should add a new user', function (done) {
       superagent.post(root + '/users')
+      .set('x-access-token', token3)
       .send({user: fakeUser})
       .end(function (e, res) {
         expect(e).to.eql(null);
@@ -52,6 +123,7 @@ describe('user route', function() {
 
     it('should retrieve the new user', function(done) {
       superagent.get(root + '/users/' + newUser.id)
+      .set('x-access-token', token1)
       .end(function(e, res) {
         expect(e).to.eql(null);
         expect(res.statusCode).to.eql(200);
@@ -64,6 +136,7 @@ describe('user route', function() {
 
     it('should remove the new user', function(done) {
       superagent.del(root + '/users/' + newUser.id)
+      .set('x-access-token', token4)
       .end(function(e, res){
         expect(e).to.eql(null);
         expect(res.statusCode).to.eql(200);
@@ -87,6 +160,7 @@ describe('user route', function() {
       it('should catch undefined user', function(done) {
         var badUser;
         superagent.post(root + '/users')
+        .set('x-access-token', token3)
         .send({user: badUser})
         .end(function(e, res) {
           expect(e).to.eql(null);
@@ -101,6 +175,7 @@ describe('user route', function() {
         var randomProp = utils.randomProperty('user');
         badUser[randomProp] = null;
         superagent.post(root + '/users')
+        .set('x-access-token', token3)
         .send({user: badUser})
         .end(function(e, res) {
           expect(e).to.eql(null);
@@ -126,18 +201,21 @@ describe('user route', function() {
       show2 = fake.makeRandomShow();
 
       superagent.post(root + '/shows').send({show: show1})
+      .set('x-access-token', token3)
       .end(function(e, res) {
         if (e) return console.log(e);
         show1 = res.body.new_show;
       });
 
       superagent.post(root + '/shows').send({show: show2})
+      .set('x-access-token', token3)
       .end(function(e, res) {
         if (e) return console.log(e);
         show2 = res.body.new_show;
       });
 
       superagent.post(root + '/users').send({user: user})
+      .set('x-access-token', token3)
       .end(function(e, res) {
         if (e) return console.log(e);
         user = res.body.new_user;
@@ -156,72 +234,97 @@ describe('user route', function() {
       });
     }); //  end initialize empty
 
-    it('should add a show', function(done) {
-      superagent.post(root + '/users/' + user.id + '/shows')
-      .send({show_id: show1.id })
-      .end(function(e, res) {
-        expect(e).to.eql(null);
-        expect(res.statusCode).to.equal(201);
-        expect(res.body.result).to.equal('Added user ' + user.id + ' to show ' + show1.id);
-        done();
-      });
-    }); //  end add show
+    describe('adding a show', function() {
+      it('should deny no token/insufficient access', function(done) {
+        superagent.post(root + '/users/' + user.id + '/shows')
+        .end(function(e, res) {
+          expect(e).to.eql(null);
+          expect(res.statusCode).to.equal(403);
+          expect(res.body).to.only.have.keys('error', 'loggedIn');
+          expect(res.body.loggedIn).to.not.be.ok();
+          expect(res.body.error).to.equal('Access token required.');
 
-    it('should retrieve the new show', function(done) {
-      superagent.get(root + '/users/' + user.id + '/shows')
-      .end(function(e, res) {
-        expect(e).to.eql(null);
-        expect(res.statusCode).to.equal(200);
-        expect(res.body).to.only.have.key('shows');
-        expect(res.body.shows.length).to.equal(1);
-        expect(res.body.shows[0]).to.eql(show1);
-        done();
-      });
-    }); //  end retrieve new show
+          superagent.post(root + '/users/' + user.id + '/shows')
+          .set('x-access-token', token2)
+          .end(function(e, res) {
+            expect(e).to.eql(null);
+            expect(res.statusCode).to.equal(403);
+            expect(res.body).to.only.have.key('error');
+            expect(res.body.error).to.equal('Request requires access level 3');
+            done();
+          });
+        });
+      }); //  end deny
 
-    it('should add another show', function(done) {
-      superagent.post(root + '/users/' + user.id + '/shows')
-      .send({show_id: show2.id})
-      .end(function(e, res) {
-        expect(e).to.eql(null);
-        expect(res.statusCode).to.equal(201);
-        expect(res.body.result).to.equal('Added user ' + user.id + ' to show ' + show2.id);
+      it('should add a show', function(done) {
+        superagent.post(root + '/users/' + user.id + '/shows')
+        .set('x-access-token', token3)
+        .send({show_id: show1.id })
+        .end(function(e, res) {
+          expect(e).to.eql(null);
+          expect(res.statusCode).to.equal(201);
+          expect(res.body.result).to.equal('Added user ' + user.id + ' to show ' + show1.id);
+          done();
+        });
+      }); //  end add show
 
+      it('should retrieve the new show', function(done) {
         superagent.get(root + '/users/' + user.id + '/shows')
         .end(function(e, res) {
           expect(e).to.eql(null);
           expect(res.statusCode).to.equal(200);
           expect(res.body).to.only.have.key('shows');
-          expect(res.body.shows.length).to.equal(2);
-          expect(res.body.shows[1]).to.eql(show2);
+          expect(res.body.shows.length).to.equal(1);
+          expect(res.body.shows[0]).to.eql(show1);
           done();
         });
-      });
-    }); //  end add another show
+      }); //  end retrieve new show
 
-    it('should delete the first show', function(done) {
-      superagent.del(root + '/users/' + user.id + '/shows')
-      .send({show_id: show1.id})
-      .end(function(e, res) {
-        expect(e).to.eql(null);
-        expect(res.statusCode).to.equal(200);
-        expect(res.body.result).to.equal("removed user " + user.id + " from show " + show1.id);
-        done();
-      });
-    }); //  end delete first
+      it('should add another show', function(done) {
+        superagent.post(root + '/users/' + user.id + '/shows')
+        .set('x-access-token', token3)
+        .send({show_id: show2.id})
+        .end(function(e, res) {
+          expect(e).to.eql(null);
+          expect(res.statusCode).to.equal(201);
+          expect(res.body.result).to.equal('Added user ' + user.id + ' to show ' + show2.id);
 
-    it('should only contain the second show', function(done) {
-      superagent.get(root + '/users/' + user.id + '/shows')
-      .end(function(e, res) {
-        expect(e).to.eql(null);
-        expect(res.statusCode).to.equal(200);
-        expect(res.body).to.only.have.key('shows');
-        expect(res.body.shows.length).to.equal(1);
-        expect(res.body.shows[0]).to.eql(show2);
-        done();
-      });
-    })
+          superagent.get(root + '/users/' + user.id + '/shows')
+          .end(function(e, res) {
+            expect(e).to.eql(null);
+            expect(res.statusCode).to.equal(200);
+            expect(res.body).to.only.have.key('shows');
+            expect(res.body.shows.length).to.equal(2);
+            expect(res.body.shows[1]).to.eql(show2);
+            done();
+          });
+        });
+      }); //  end add another show
 
+      it('should delete the first show', function(done) {
+        superagent.del(root + '/users/' + user.id + '/shows')
+        .set('x-access-token', token4)
+        .send({show_id: show1.id})
+        .end(function(e, res) {
+          expect(e).to.eql(null);
+          expect(res.statusCode).to.equal(200);
+          expect(res.body.result).to.equal("removed user " + user.id + " from show " + show1.id);
+          done();
+        });
+      }); //  end delete first
+
+      it('should only contain the second show', function(done) {
+        superagent.get(root + '/users/' + user.id + '/shows')
+        .end(function(e, res) {
+          expect(e).to.eql(null);
+          expect(res.statusCode).to.equal(200);
+          expect(res.body).to.only.have.key('shows');
+          expect(res.body.shows.length).to.equal(1);
+          expect(res.body.shows[0]).to.eql(show2);
+          done();
+        });
+      }); //  end contain scond
+    })  //  end describe adding a show
   });  // end referencing shows
 
   describe('current shows', function(done) {
@@ -233,6 +336,7 @@ describe('user route', function() {
     before(function(done) {
       //  create a user
       superagent.post(root + '/users')
+      .set('x-access-token', token4)
       .send({user: fake.makeRandomUser()})
       .end(function(e, res) {
         if (e) return console.log(e);
@@ -240,12 +344,14 @@ describe('user route', function() {
 
         //  create two shows
         superagent.post(root + '/shows')
+        .set('x-access-token', token4)
         .send({show: fake.makeRandomShow()})
         .end(function(e, res) {
           if (e) return console.log(e);
           show1 = res.body.new_show;
 
           superagent.post(root + '/shows')
+          .set('x-access-token', token4)
           .send({show: fake.makeRandomShow()})
           .end(function(e, res) {
             if (e) return console.log(e);
@@ -253,11 +359,13 @@ describe('user route', function() {
 
             //  add user as host
             superagent.post(root + '/users/' + user.id + '/shows')
+            .set('x-access-token', token4)
             .send({show_id: show1.id})
             .end(function(e, res) {
               if (e) return console.log(e);
 
               superagent.post(root + '/users/' + user.id + '/shows')
+              .set('x-access-token', token4)
               .send({show_id: show2.id})
               .end(function(e, res) {
                 if (e) return console.log(e);
@@ -284,6 +392,7 @@ describe('user route', function() {
       //  post first show to the schedule
       slot = {show_id: show1.id, timeslot: fake.getRandomInt(0, 167)};
       superagent.post(root + '/schedule')
+      .set('x-access-token', token3)
       .send({show: slot})
       .end(function(e, res) {
         expect(e).to.eql(null);
@@ -309,6 +418,7 @@ describe('user route', function() {
     var token;
     before(function(done) {
       superagent.post(root + '/users')
+      .set('x-access-token', token3)
       .send({user: fake.makeRandomUser() })
       .end(function(e, res) {
         if (e) return console.log(e);
@@ -352,6 +462,7 @@ describe('user route', function() {
 
     it('shuld promote to level 3', function(done) {
       superagent.post(root + '/staff')
+      .set('x-access-token', token4)
       .send({id: user.id, level: 3})
       .end(function(e, res) {
         expect(e).to.eql(null);

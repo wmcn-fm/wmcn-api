@@ -34,7 +34,6 @@ describe('applications', function() {
           .end(function(e, res) {
             if (e) return console.log(e);
             token4 = res.body.token;
-            console.log("%s\n%s\n%s\n%s\n", token1, token2, token3, token4);
 
             superagent.del(root + '/applications')
             .set('x-access-token', token4)

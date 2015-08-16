@@ -56,7 +56,7 @@ users.route('/')
 	})	//	end .get
 
 	//  POST a new user
-	.post(function(req, res) {
+	.post(auth.requiresAccess(3), function(req, res) {
 		pg.connect(db, function(err, client, done) {
 			if (err) {
 				return res.json(500, {error: err});
@@ -131,7 +131,7 @@ users.route('/')
 	})	//	end .put
 
 	//  DELETE all users
-	.delete(function(req, res) {
+	.delete(auth.requiresAccess(4), function(req, res) {
 		pg.connect(db, function(err, client, done) {
 			if (err) {
 				done();
@@ -154,7 +154,7 @@ users.route('/')
 users.route('/:id')
 	//	GET one user
 	//		@param id: integer, a user's ID number
-	.get(function(req, res) {
+	.get(auth.requiresAccess(1), function(req, res) {
 		pg.connect(db, function(err, client, done) {
 			if (err) {
 				done();
@@ -177,7 +177,7 @@ users.route('/:id')
 	})
 	//	PUT an update to one user
 	//		@param id: a user's id number
-	.put(function(req, res) {
+	.put(auth.requiresAccess(1), function(req, res) {
 		res.json(501, {error: 'not configured!'});
 		// pg.connect(db, function(err, client, done) {
 		// 	if (err) {
@@ -203,7 +203,7 @@ users.route('/:id')
 
 	//	DELETE one user
 	//		@param id: a user's ID number
-	.delete(function(req, res) {
+	.delete(auth.requiresAccess(4), function(req, res) {
 		pg.connect(db, function(err, client, done) {
 			if (err) {
 				done();
@@ -256,7 +256,7 @@ users.route('/:id/shows')
 		});	//	end pg.connect
 	})	//	end .get
 
-	.post(function(req, res) {
+	.post(auth.requiresAccess(3), function(req, res) {
 		pg.connect(db, function(err, client, done) {
 			if (err) {
 				done();
@@ -279,7 +279,7 @@ users.route('/:id/shows')
 		});	//	end pg.connect
 	})	//	end .post
 
-	.delete(function(req, res) {
+	.delete(auth.requiresAccess(4), function(req, res) {
 		pg.connect(db, function (err, client, done) {
       if (err) {
         done();
