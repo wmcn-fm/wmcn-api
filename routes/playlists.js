@@ -6,6 +6,7 @@ var db = config.db;
 var Playlists = require('../models/Playlist');
 var api = require('../models/api');
 var utils = require('./utils/route-utils');
+var auth = require('../lib/auth');
 
 playlists.route('/')
 	.get(function(req, res) {
@@ -49,7 +50,7 @@ playlists.route('/')
 	})	//	end .get
 
 	//	POST a new playlist to the table
-	.post(function(req, res) {
+	.post(auth.requiresAccess(1), function(req, res) {
 		pg.connect(db, function(err, client, done) {
 			if (err) {
 				done();
@@ -86,7 +87,7 @@ playlists.route('/')
 	})	//	end .post
 
 	//	DELETE all playlists in the table
-	.delete(function(req, res) {
+	.delete(auth.requiresAccess(4), function(req, res) {
 		pg.connect(db, function(err, client, done) {
 			if (err) {
 				done();
@@ -139,7 +140,7 @@ playlists.route('/:id')
 		// res.json(200, {playlist: '/returns ' + id + ' s updated playlist document'});
 	})
 
-	.delete(function(req, res) {
+	.delete(auth.requiresAccess(3), function(req, res) {
 		var id = req.params.id;
 
 		pg.connect(db, function(err, client, done) {

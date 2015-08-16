@@ -5,6 +5,8 @@ var config = require('../config/config')();
 var db = config.db;
 var Show = require('../models/Show');
 var api = require('../models/api');
+var auth = require('../lib/auth');
+
 
 hosts.route('/')
   .get(function(req, res) {
@@ -27,7 +29,7 @@ hosts.route('/')
     }); //  end pg.connect
   }) //  end .get
 
-  .delete(function(req, res) {
+  .delete(auth.requiresAccess(4), function(req, res) {
     pg.connect(db, function (err, client, done) {
       if (err) {
         done();

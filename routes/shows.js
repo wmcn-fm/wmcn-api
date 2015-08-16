@@ -7,6 +7,8 @@ var Shows = require('../models/Show');
 var Playlists = require('../models/Playlist');
 var api = require('../models/api');
 var utils = require('./utils/route-utils');
+var auth = require('../lib/auth');
+
 
 
 shows.route('/')
@@ -35,7 +37,7 @@ shows.route('/')
   })
 
   //	POST a new show to the table
-  .post(function(req, res) {
+  .post(auth.requiresAccess(3), function(req, res) {
   	pg.connect(db, function(err, client, done) {
   		if (err) {
         done();
@@ -95,7 +97,7 @@ shows.route('/')
   })
 
   //	DELETE all shows in the table
-  .delete(function(req, res) {
+  .delete(auth.requiresAccess(4), function(req, res) {
   	pg.connect(db, function(err, client, done) {
       if (err) {
         done();
@@ -142,11 +144,11 @@ shows.route('/:id')
   })
 
   //	PUT an update to one show in the table
-  .put(function(req, res) {
+  .put(auth.requiresAccess(1), function(req, res) {
     res.json(501, {error: 'not configured'});
   })
 
-  .delete(function(req, res) {
+  .delete(auth.requiresAccess(4), function(req, res) {
   	pg.connect(db, function(err, client, done) {
   		if (err) {
         done();
@@ -198,7 +200,7 @@ shows.route('/:id/hosts')
   	});
   })
 
-  .post(function(req, res) {
+  .post(auth.requiresAccess(3), function(req, res) {
     pg.connect(db, function(err, client, done) {
       if (err) {
         done();
@@ -244,7 +246,7 @@ shows.route('/:id/playlists')
   }) //  end .get
 
   //	POST a new playlist to the table
-	.post(function(req, res) {
+	.post(auth.requiresAccess(1), function(req, res) {
 		pg.connect(db, function(err, client, done) {
 			if (err) {
 				done();
