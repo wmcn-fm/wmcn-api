@@ -6,23 +6,57 @@ var fake = require('./fake');
 var utils = require('./utils');
 
 describe('playlists', function() {
+  var token1;
+  var token2;
+  var token3;
+  var token4;
   var show;
   var playlist;
   before(function(done) {
-    superagent.del(root + '/playlists')
+    superagent.get(root + '/authenticate/dev')
+    .query({id: 1, access: 1})
     .end(function(e, res) {
       if (e) return console.log(e);
+      token1 = res.body.token;
 
-      superagent.post(root + '/shows')
-      .send({show: fake.makeRandomShow() })
+      superagent.get(root + '/authenticate/dev')
+      .query({id: 2, access: 2})
       .end(function(e, res) {
         if (e) return console.log(e);
-        show = res.body.new_show;
-        playlist = fake.makeRandomPlaylist();
-        playlist.show_id = show.id;
-        done();
-      });
-    });
+        token2 = res.body.token;
+
+        superagent.get(root + '/authenticate/dev')
+        .query({id: 3, access: 3})
+        .end(function(e, res) {
+          if (e) return console.log(e);
+          token3 = res.body.token;
+
+          superagent.get(root + '/authenticate/dev')
+          .query({id: 4, access: 4})
+          .end(function(e, res) {
+            if (e) return console.log(e);
+            token4 = res.body.token;
+
+            superagent.del(root + '/playlists')
+            .set('x-access-token', token4)
+            .end(function(e, res) {
+              if (e) return console.log(e);
+
+              superagent.post(root + '/shows')
+              .set('x-access-token', token3)
+              .send({show: fake.makeRandomShow() })
+              .end(function(e, res) {
+                if (e) return console.log(e);
+                show = res.body.new_show;
+                playlist = fake.makeRandomPlaylist();
+                playlist.show_id = show.id;
+                done();
+              });
+            });
+          }); //  token4
+        })  //  token3
+      })  //  token2
+    })  //  token1
   }); //  end before
 
   it('should initialize empty', function(done) {
@@ -40,6 +74,7 @@ describe('playlists', function() {
   describe('creating a playlist', function() {
     it('should create a playlist', function(done) {
       superagent.post(root + '/playlists')
+      .set('x-access-token', token1)
       .send({playlist: playlist})
       .end(function(e, res) {
         expect(e).to.eql(null);
@@ -54,6 +89,7 @@ describe('playlists', function() {
     it('should catch undefined playlist', function(done) {
       var badPl;
       superagent.post(root + '/playlists')
+      .set('x-access-token', token1)
       .send({playlist: badPl})
       .end(function(e, res) {
         expect(e).to.eql(null);
@@ -69,6 +105,7 @@ describe('playlists', function() {
       var randomProp = utils.randomProperty('playlist');
       badPl[randomProp] = null;
       superagent.post(root + '/playlists')
+      .set('x-access-token', token1)
       .send({playlist: badPl})
       .end(function(e, res) {
         expect(e).to.eql(null);
@@ -88,6 +125,7 @@ describe('playlists', function() {
       playlist.show_id = show.id;
 
       superagent.post(root + '/playlists')
+      .set('x-access-token', token1)
       .send({playlist: playlist})
       .end(function(e, res) {
         if (e) return console.log(e);
@@ -109,6 +147,7 @@ describe('playlists', function() {
 
     it('should delete the playlist', function(done) {
       superagent.del(root + '/playlists/' + playlist.id)
+      .set('x-access-token', token2)
       .end(function(e, res) {
         expect(e).to.eql(null);
         expect(res.statusCode).to.equal(200);
@@ -136,12 +175,14 @@ describe('playlists', function() {
       playlist1.show_id = show.id;
       playlist2.show_id = show.id;
       superagent.post(root + '/playlists')
+      .set('x-access-token', token1)
       .send({playlist: playlist1})
       .end(function(e, res) {
         if (e) return console.log(e);
         playlist1 = res.body.new_playlist;
 
         superagent.post(root + '/playlists')
+        .set('x-access-token', token1)
         .send({playlist: playlist2})
         .end(function(e, res) {
           if (e) return console.log(e);

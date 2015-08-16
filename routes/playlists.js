@@ -140,7 +140,7 @@ playlists.route('/:id')
 		// res.json(200, {playlist: '/returns ' + id + ' s updated playlist document'});
 	})
 
-	.delete(auth.requiresAccess(3), function(req, res) {
+	.delete(auth.requiresAccess(2), function(req, res) {
 		var id = req.params.id;
 
 		pg.connect(db, function(err, client, done) {

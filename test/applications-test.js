@@ -10,6 +10,7 @@ describe('applications', function() {
   var token1;
   var token2;
   var token3;
+  var token4;
   before(function(done) {
     superagent.get(root + '/authenticate/dev')
     .query({id: 1, access: 1})
