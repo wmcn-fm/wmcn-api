@@ -35,7 +35,7 @@ staff.route('/')
 			});
 		});	//	pg.connect
 	})
-	.post(function(req, res) {
+	.post(auth.requiresAccess(4), function(req, res) {
 		pg.connect(db, function(err, client, done) {
 			if (err) {
 				done();
