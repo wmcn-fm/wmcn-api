@@ -6,20 +6,6 @@ var fake = require('./fake');
 var utils = require('./utils');
 
 describe('user route', function() {
-
-  before(function(done) {
-    superagent.del(root + '/hosts')
-    .end(function(e, res) {
-      if (e) return console.log(e);
-    });
-    superagent.del(root + '/users')
-    .end(function(e, res) {
-      if (e) return console.log(e);
-      done();
-    });
-  }); //  end before
-
-  var user;
   var token1;
   var token2;
   var token3;

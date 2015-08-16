@@ -6,6 +6,7 @@ var db = config.db;
 var Schedule = require('../models/Schedule');
 var api = require('../models/api');
 var utils = require('./utils/route-utils');
+var auth = require('../lib/auth');
 
 schedule.route('/')
   .get(function(req, res) {
@@ -28,7 +29,7 @@ schedule.route('/')
       }); //  end getSchedule
     }); //  end pg.connect
   })
-  .post(function(req, res) {
+  .post(auth.requiresAccess(3), function(req, res) {
     pg.connect(db, function(err, client, done) {
       if (err) {
         done();
@@ -47,7 +48,7 @@ schedule.route('/')
       }); //  end Schedule.scheduleShow
     }); //  end pg.connect
   })
-  .delete(function(req, res) {
+  .delete(auth.requiresAccess(4), function(req, res) {
     pg.connect(db, function(err, client, done) {
       if (err) {
         done();
@@ -96,7 +97,7 @@ schedule.route('/:timeslot')
       }); //  end Schedule.getShowAtTime
     }); //  end pg.connect
   })  //  end .get
-  .delete(function(req, res) {
+  .delete(auth.requiresAccess(4), function(req, res) {
     pg.connect(db, function(err, client, done) {
       if (err) {
         return res.json(500, {error: err});

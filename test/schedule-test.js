@@ -6,21 +6,56 @@ var fake = require('./fake');
 var utils = require('./utils');
 
 describe('schedule', function() {
+  var token1;
+  var token2;
+  var token3;
+  var token4;
   var show;
   var submitted;
   before(function(done) {
-    superagent.del(root + '/schedule')
+    superagent.get(root + '/authenticate/dev')
+    .query({id: 1, access: 1})
     .end(function(e, res) {
       if (e) return console.log(e);
+      token1 = res.body.token;
 
-      superagent.post(root + '/shows')
-      .send({show: fake.makeRandomShow()})
+      superagent.get(root + '/authenticate/dev')
+      .query({id: 2, access: 2})
       .end(function(e, res) {
         if (e) return console.log(e);
-        show = res.body.new_show;
-        done();
-      });
-    });
+        token2 = res.body.token;
+
+        superagent.get(root + '/authenticate/dev')
+        .query({id: 3, access: 3})
+        .end(function(e, res) {
+          if (e) return console.log(e);
+          token3 = res.body.token;
+
+          superagent.get(root + '/authenticate/dev')
+          .query({id: 4, access: 4})
+          .end(function(e, res) {
+            if (e) return console.log(e);
+            token4 = res.body.token;
+
+            superagent.del(root + '/schedule')
+            .set('x-access-token', token4)
+            .end(function(e, res) {
+              if (e) return console.log(e);
+
+              superagent.post(root + '/shows')
+              .set('x-access-token', token3)
+              .send({show: fake.makeRandomShow()})
+              .end(function(e, res) {
+                if (e) return console.log(e);
+                show = res.body.new_show;
+                done();
+              });
+            });
+
+          }); //  token4
+        })  //  token3
+      })  //  token2
+    })  //  token1
   }); //  end before
 
   it('should initially be blank', function(done) {
@@ -41,6 +76,7 @@ describe('schedule', function() {
       submitted = {timeslot: fake.getRandomInt(0, 167), show_id: show.id};
 
       superagent.post(root + '/schedule')
+      .set('x-access-token', token3)
       .send({show: submitted})
       .end(function(e, res) {
         expect(e).to.eql(null);
@@ -54,6 +90,7 @@ describe('schedule', function() {
     it('should catch invalid show id', function(done) {
       var slot = {timeslot: fake.getRandomInt(0, 167),show_id: 1000};
       superagent.post(root + '/schedule')
+      .set('x-access-token', token3)
       .send({show: slot})
       .end(function(e, res) {
         expect(e).to.eql(null);
@@ -67,6 +104,7 @@ describe('schedule', function() {
     it('should catch invalid timeslot', function(done) {
       var slot = {timeslot: fake.getRandomInt(168, 2000), show_id: show.id};
       superagent.post(root + '/schedule')
+      .set('x-access-token', token3)
       .send({show: slot})
       .end(function(e, res) {
         expect(e).to.eql(null);
@@ -80,6 +118,7 @@ describe('schedule', function() {
     it('should catch missing show_id', function(done) {
         var slot = {timeslot: fake.getRandomInt(0, 167), show_id: null};
         superagent.post(root + '/schedule')
+        .set('x-access-token', token3)
         .send({show: slot})
         .end(function(e, res) {
           expect(e).to.eql(null);
@@ -93,6 +132,7 @@ describe('schedule', function() {
     it('should catch missing timeslot', function(done) {
         var slot = {timeslot: null, show_id: show.id};
         superagent.post(root + '/schedule')
+        .set('x-access-token', token3)
         .send({show: slot})
         .end(function(e, res) {
           expect(e).to.eql(null);
@@ -159,12 +199,14 @@ describe('schedule', function() {
     var slot;
     before(function(done) {
       superagent.post(root + '/shows')
+      .set('x-access-token', token3)
       .send({show: fake.makeRandomShow()})
       .end(function(e, res) {
         if (e) return console.log(e);
         show = res.body.new_show;
         slot = {timeslot: fake.getRandomInt(0, 167), show_id: show.id};
         superagent.post(root + '/schedule')
+        .set('x-access-token', token3)
         .send({show: slot})
         .end(function(e, res) {
           if (e) return console.log(e);
@@ -175,6 +217,7 @@ describe('schedule', function() {
 
     it('should remove the show from the schedule...', function() {
       superagent.del(root + '/schedule/' + slot.timeslot)
+      .set('x-access-token', token4)
       .end(function(e, res) {
         expect(e).to.eql(null);
         expect(res.statusCode).to.equal(200);
@@ -195,6 +238,7 @@ describe('schedule', function() {
 
     it('should handle unscheduled slots', function(done) {
       superagent.del(root + '/schedule/' + slot.timeslot)
+      .set('x-access-token', token4)
       .end(function(e, res) {
         expect(e).to.eql(null);
         expect(res.statusCode).to.equal(404);
@@ -206,6 +250,7 @@ describe('schedule', function() {
 
     it('should handle faulty params', function(done) {
       superagent.del(root + '/schedule/xyz')
+      .set('x-access-token', token4)
       .end(function(e, res) {
         expect(e).to.eql(null);
         expect(res.statusCode).to.equal(400);

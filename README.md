@@ -29,13 +29,15 @@ $ npm run deploy
 # builds the db and serves the app on default port (3001) using forever
 
 #	otherwise...
-$ DEBUG=wmcn-api USER=username PW=devpw npm run dev
+$ DEBUG=wmcn-api USER=username PW=devpw PRIVATE_KEY=test npm run dev
 >	Express server listening on port 3001 in development mode using test database
 # all defaults; dev uses nodemon
+# PRIVATE_KEY = secret key for access token signing. Dev mode allows keys to be generated automatically throught GET ~/authenticate/dev
 
 $ sudo NODE_ENV=production USER=username PW=productionpw PORT=80 DB=production npm start
 >	wmcn-api Express server listening on port 80 in production mode using production database
 # NODE_ENV, DB, PORT all configurable via process.env
+# production mode does not allow random token creation
 ```
 
 ###Test
@@ -64,6 +66,7 @@ $ npm test
 	- [`/:timeslot`](#schedule-ts)
 	- [`/current`](#schedule-current)
 - [`/applications`](#applications)
+	- [`/:id`](#applications-id)
 - [`/hosts`](#hosts)
 - [`/staff`](#staff)
 - [`/articles`](#articles)
@@ -111,6 +114,7 @@ $ npm test
 	- **Description**: add one user to the table
 	- **Request params**: *none*
 	- **Request body**: `user` object containing:
+	- **Request headers**: `x-access-token` with token.access >= 3 [required]
 		- **required**:
 			- `first_name` (string), `last_name` (string),
 			- `phone` (string), `email` (unique string)
@@ -131,6 +135,7 @@ $ npm test
 	- **Description**: delete all users in the database
 	- **Request params**: *none*
 	- **Request body**: *none*
+	- **Request headers**: `x-access-token` with token.access >= 4 [required]
 	- **Response**:
 		- **Success**:
 			- **Status code**: `204`
@@ -161,6 +166,7 @@ $ npm test
 	- **Description**: delete one user
 	- **Request params**: `id`: user id number
 	- **Request body**: *none*
+	- **Request headers**: `x-access-token` with token.access >= 4 [required]
 	- **Response**:
 		- **Success**:
 			- **Status code**: `204`
@@ -188,6 +194,7 @@ $ npm test
 	- **Description**: add show `show_id` to `user_id`'s list of shows
 	- **Request params**: `id`: user id
 	- **Request body**: `show_id` (_required_): valid show id;
+	- **Request headers**: `x-access-token` with token.access >= 3 [required]
 	- **Response**:
 		- **Success**:
 			- **Status code**: `201`
@@ -197,6 +204,7 @@ $ npm test
 	- **Description**: remove a user as a show's host
 	- **Request params**: `id`: user id
 	- **Request body**: `show_id` (_required_): valid show id;
+	- **Request headers**: `x-access-token` with token.access >= 4 [required]
 	- **Response**:
 		- **Success**:
 			- **Status code**: `200`
@@ -249,6 +257,7 @@ $ npm test
 	- **Request body**: `show` object containing:
 		- **required**:
 			- `title` (string), `blurb` (string), `timeslot` (int array)
+	- **Request headers**: `x-access-token` with token.access >= 3 [required]
 	- **Response**:
 		- **Success**:
 			- **Status code**: `201`
@@ -264,6 +273,8 @@ $ npm test
 	- **Description**: delete all shows in the database
 	- **Request params**: *none*
 	- **Request body**: *none*
+	- **Request headers**: `x-access-token` with token.access >= 4 [required]
+
 	- **Response**:
 		- **Success**:
 			- **Status code**: `204`
@@ -294,6 +305,7 @@ $ npm test
 	- **Description**: delete one show
 	- **Request params**: `id`: show id number
 	- **Request body**: *none*
+	- **Request headers**: `x-access-token` with token.access >= 4 [required]
 	- **Response**:
 		- **Success**:
 			- **Status code**: `204`
@@ -338,6 +350,7 @@ $ npm test
 	- **Request body**: `playlist` object containing:
 		- **required**:
 			- `show_id` (int, valid show ID), `content` (string)
+	- **Request headers**: `x-access-token` with token.access >= 1 [required]
 	- **Response**:
 		- **Success**:
 			- **Status code**: `201`
@@ -369,6 +382,7 @@ $ npm test
 	- **Request body**: `playlist` object containing:
 		- **required**:
 			- `show_id` (int, valid show ID), `content` (string)
+	- **Request headers**: `x-access-token` with token.access >= 1 [required]
 	- **Response**:
 		- **Success**:
 			- **Status code**: `201`
@@ -384,6 +398,7 @@ $ npm test
 	- **Description**: delete all playlists in the database
 	- **Request params**: *none*
 	- **Request body**: *none*
+	- **Request headers**: `x-access-token` with token.access >= 4 [required]
 	- **Response**:
 		- **Success**:
 			- **Status code**: `204`
@@ -414,6 +429,7 @@ $ npm test
 	- **Description**: delete one playlist
 	- **Request params**: `id`: playlist id number
 	- **Request body**: *none*
+	- **Request headers**: `x-access-token` with token.access >= 4 [required]
 	- **Response**:
 		- **Success**:
 			- **Status code**: `204`
@@ -453,6 +469,7 @@ $ npm test
 - **Method**: `POST`
 	- **Description**: add one show to the schedule
 	- **Request params**: *none*
+	- **Request headers**: `x-access-token` with token.access >= 3 [required]
 	- **Request body**: `show` object containing:
 		- **required**:
 			- `timeslot`: int, range 0-167; `show_id`: valid show id number
@@ -467,6 +484,7 @@ $ npm test
 - **Method**: `DELETE`
 	- **Description**: delete the schedule
 	- **Request params**: *none*
+	- **Request headers**: `x-access-token` with token.access >= 4 [required]
 	- **Request body**: *none*
 	- **Response**:
 		- **Success**:
@@ -492,6 +510,7 @@ $ npm test
 - **Method**: `DELETE`
 	- **Description**: delete the relationship between a show and a timeslot
 	- **Request params**: `timeslot`: int, range 0-167
+	- **Request headers**: `x-access-token` with token.access >= 4 [required]
 	- **Request body**: *none*
 	- **Response**:
 		- **Success**:
@@ -522,6 +541,7 @@ $ npm test
 - **Method**: `GET`
 	- **Description**: get all applications in the table
 	- **Request params**: *none*
+	- **Request headers**: `x-access-token` with token.access >= 2 [required]
 	- **Request body**: *none*
 	- **Response**:
 		- **Success**:
@@ -556,6 +576,7 @@ $ npm test
 
 - **Method**: `DELETE`
 	- **Description**: delete all applications in the database
+	- **Request headers**: `x-access-token` with token.access >= 3 [required]
 	- **Request params**: *none*
 	- **Request body**: *none*
 	- **Response**:
@@ -565,6 +586,50 @@ $ npm test
 		- **Error**:
 			- **Status code**: `500`
 			- **Response body**: `{error: "..."}`
+
+##### <a name="applications-id">`/applications/:id`</a>
+
+- **Method**: `GET`
+	- **Description**: get one application
+	- **Request headers**: `x-access-token` with token.access >= 2 [required]
+	- **Request params**: `id`: application id number
+	- **Request body**: *none*
+	- **Response**:
+		- **Success**:
+			- **Status code**: `200`
+			- **Response body**: `{application: {...}}`
+		- **Error**:
+			- **Status code**: `500`
+			- **Response body**: `{error: "..."}`
+
+- **Method**: `DELETE`
+	- **Description**: delete one app
+	- **Request headers**: `x-access-token` with token.access >= 3 [required]
+	- **Request params**: `id`: application id number
+	- **Request body**: *none*
+	- **Response**:
+		- **Success**:
+			- **Status code**: `200`
+			- **Response body**: `{result: "<number> applications deleted."}`
+		- **Error**:
+			- **Status code**: `500`
+			- **Response body**: `{error: "..."}`
+
+##### <a name="applications-id-approve">`/applications/:id/approve`</a>
+- **Method**: `GET`
+	- **Description**: approve an application: creating users, shows, and linking the two, scheduling the show
+	- **Request headers**: `x-access-token` with token.access >= 3 [required]
+	- **Request params**: `id`: application id number
+	- **Request body**: `timeslot`: int(0-167), the timeslot for the show
+	- **Response**:
+		- **Success**:
+			- **Status code**: `201`
+			- **Response body**: `{result: {users: [...], num_hosts: 2, timeslot: <timeslot>, show: {...}}}`
+		- **Error**:
+			- **Status code**: `500`
+			- **Response body**: `{error: "..."}`
+
+
 
 ####Staff
 ##### <a name="staff">`/staff`</a>
@@ -586,6 +651,7 @@ $ npm test
 
 - **Method**: `POST`
 	- **Description**: adjust a user's access level
+	- **Request headers**: `x-access-token` with token.access >= 4 [required]
 	- **Request body**: `id`: user ID number [required]; `level`: user's new access level [required in body or query];
 	- **Request query**: `level`: user's new access level [required in body or query];
 	- **Response**:

@@ -7,13 +7,23 @@ var utils = require('./utils');
 
 describe('authenticate', function() {
   var user;
+  var token4;
   before(function(done) {
-    superagent.post(root + '/users')
-    .send({user: fake.makeRandomUser() })
+    superagent.get(root + '/authenticate/dev')
+    .query({ id: 1, access: 4})
     .end(function(e, res) {
       if (e) return console.log(e);
-      user = res.body.new_user;
-      done();
+      token4 = res.body.token;
+
+      superagent.post(root + '/users')
+      .set('x-access-token', token4)
+      .send({user: fake.makeRandomUser() })
+      .end(function(e, res) {
+        if (e) return console.log(e);
+        user = res.body.new_user;
+        done();
+      });
+
     });
   }); //  end before
 
