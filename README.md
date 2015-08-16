@@ -46,7 +46,7 @@ With the app running:
 $ npm test
 ```
 
-## v0.1 documentation
+## v0.1 BETA documentation
 
 ###Routes
 - [`/authenticate`](#authenticate)
