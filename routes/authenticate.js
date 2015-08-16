@@ -50,7 +50,7 @@ authenticate.route('/dev')
     if (process.env.NODE_ENV == 'production') {
       res.json(500, {error: 'unavailable in production mode'});
     } else {
-      var token = auth.createToken({id: req.query.id, access: 4});
+      var token = auth.createToken({id: req.query.id, access: req.query.access});
       res.json(200, {token: token});
     }
   });

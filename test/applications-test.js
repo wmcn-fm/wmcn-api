@@ -6,16 +6,51 @@ var fake = require('./fake');
 var utils = require('./utils');
 
 describe('applications', function() {
+  var user;
+  var token1;
+  var token2;
+  var token3;
   before(function(done) {
-    superagent.del(root + '/applications')
+    superagent.get(root + '/authenticate/dev')
+    .query({id: 1, access: 1})
     .end(function(e, res) {
       if (e) return console.log(e);
-      done();
-    });
+      token1 = res.body.token;
+
+      superagent.get(root + '/authenticate/dev')
+      .query({id: 2, access: 2})
+      .end(function(e, res) {
+        if (e) return console.log(e);
+        token2 = res.body.token;
+
+        superagent.get(root + '/authenticate/dev')
+        .query({id: 3, access: 3})
+        .end(function(e, res) {
+          if (e) return console.log(e);
+          token3 = res.body.token;
+
+          superagent.get(root + '/authenticate/dev')
+          .query({id: 4, access: 4})
+          .end(function(e, res) {
+            if (e) return console.log(e);
+            token4 = res.body.token;
+            console.log("%s\n%s\n%s\n%s\n", token1, token2, token3, token4);
+
+            superagent.del(root + '/applications')
+            .set('x-access-token', token4)
+            .end(function(e, res) {
+              if (e) return console.log(e);
+              done();
+            });
+          }); //  token4
+        })  //  token3
+      })  //  token2
+    })  //  token1
   }); //  end before
 
   it('should initialize empty', function(done) {
     superagent.get(root + '/applications')
+    .set('x-access-token', token2)
     .end(function(e, res) {
       expect(e).to.eql(null);
       expect(res.statusCode).to.equal(404);
@@ -105,28 +140,92 @@ describe('applications', function() {
         done();
       });
     }); //  end before
-    it('should retrieve an application', function(done) {
-      superagent.get(root + '/applications/' + app.id)
-      .end(function(e, res) {
-        expect(e).to.eql(null);
-        expect(res.statusCode).to.equal(200);
-        expect(res.body).to.only.have.key('application');
-        expect(res.body.application).to.eql(app);
-        done();
-      });
-    }); //  end retrieve an app
 
-    it('should catch nonexistent apps', function(done) {
-      var badId = app.id + 1;
-      superagent.get(root + '/applications/' + badId)
-      .end(function(e, res) {
-        expect(e).to.eql(null);
-        expect(res.statusCode).to.equal(404);
-        expect(res.body).to.only.have.key('error');
-        expect(res.body.error).to.eql("Couldn't find app with id " + badId);
-        done();
-      });
-    }); //  end catch nonexistent
+    describe('all apps', function() {
+      it('should deny no token/insufficient access', function(done) {
+        superagent.get(root + '/applications')
+        .end(function(e, res) {
+          expect(e).to.eql(null);
+          expect(res.statusCode).to.equal(403);
+          expect(res.body).to.only.have.keys('error', 'loggedIn');
+          expect(res.body.loggedIn).to.not.be.ok();
+          expect(res.body.error).to.equal('Access token required.');
+
+          superagent.get(root + '/applications')
+          .set('x-access-token', token1)
+          .end(function(e, res) {
+            expect(e).to.eql(null);
+            expect(res.statusCode).to.equal(403);
+            expect(res.body).to.only.have.key('error');
+            expect(res.body.error).to.equal('Request requires access level 2');
+            done();
+          });
+        });
+      }); //  end deny
+
+      it('should get all apps', function(done) {
+        superagent.get(root + '/applications')
+        .set('x-access-token', token2)
+        .end(function(e, res) {
+          expect(e).to.eql(null);
+          expect(res.statusCode).to.equal(200);
+          expect(res.body).to.only.have.key('applications');
+          expect(res.body.applications.length).to.be.above(1);
+          done();
+        });
+      })  //  end get all
+    }); //  end describe all apps
+
+
+    describe('single app', function() {
+      it('should deny no token/insufficient access', function(done) {
+        superagent.get(root + '/applications/' + app.id)
+        .end(function(e, res) {
+          expect(e).to.eql(null);
+          expect(res.statusCode).to.equal(403);
+          expect(res.body).to.only.have.keys('error', 'loggedIn');
+          expect(res.body.loggedIn).to.not.be.ok();
+          expect(res.body.error).to.equal('Access token required.');
+
+          superagent.get(root + '/applications/' + app.id)
+          .set('x-access-token', token1)
+          .end(function(e, res) {
+            expect(e).to.eql(null);
+            expect(res.statusCode).to.equal(403);
+            expect(res.body).to.only.have.key('error');
+            expect(res.body.error).to.equal('Request requires access level 2');
+            done();
+          });
+        });
+      }); //  end deny
+
+      it('should retrieve an application', function(done) {
+        superagent.get(root + '/applications/' + app.id)
+        .set('x-access-token', token2)
+        .end(function(e, res) {
+          expect(e).to.eql(null);
+          expect(res.statusCode).to.equal(200);
+          expect(res.body).to.only.have.key('application');
+          expect(res.body.application).to.eql(app);
+          done();
+        });
+      }); //  end retrieve an app
+
+      it('should catch nonexistent apps', function(done) {
+        var badId = app.id + 1;
+        superagent.get(root + '/applications/' + badId)
+        .set('x-access-token', token2)
+        .end(function(e, res) {
+          expect(e).to.eql(null);
+          expect(res.statusCode).to.equal(404);
+          expect(res.body).to.only.have.key('error');
+          expect(res.body.error).to.eql("Couldn't find app with id " + badId);
+          done();
+        });
+      }); //  end catch nonexistent
+
+    })
+
   }); //  end describe retrieving
 
   describe('deleting', function() {
@@ -149,27 +248,76 @@ describe('applications', function() {
       });
     }); //  end before
 
-    it('should delete one app', function(done) {
-      superagent.del(root + '/applications/' + app1.id)
-      .end(function(e, res) {
-        expect(e).to.eql(null);
-        expect(res.statusCode).to.equal(200);
-        expect(res.body).to.only.have.key('result');
-        expect(res.body.result).to.equal('1 app with id ' + app1.id + ' deleted.');
-        done();
-      });
-    }); //  end delete one
+    describe('single app', function() {
+      it('should deny no token/insufficient access', function(done) {
+        superagent.del(root + '/applications/' + app1.id)
+        .end(function(e, res) {
+          expect(e).to.eql(null);
+          expect(res.statusCode).to.equal(403);
+          expect(res.body).to.only.have.keys('error', 'loggedIn');
+          expect(res.body.loggedIn).to.not.be.ok();
+          expect(res.body.error).to.equal('Access token required.');
 
-    it('should delete all apps', function(done) {
-      superagent.del(root + '/applications')
-      .end(function(e, res) {
-        expect(e).to.eql(null);
-        expect(res.statusCode).to.equal(200);
-        expect(res.body).to.only.have.keys('result', 'num_deleted');
-        expect(res.body.num_deleted).to.be.above(0);
-        done();
-      });
-    }); //  end delete all
+          superagent.del(root + '/applications/' + app1.id)
+          .set('x-access-token', token2)
+          .end(function(e, res) {
+            expect(e).to.eql(null);
+            expect(res.statusCode).to.equal(403);
+            expect(res.body).to.only.have.key('error');
+            expect(res.body.error).to.equal('Request requires access level 3');
+            done();
+          });
+        });
+      }); //  end deny
+
+      it('should delete one app', function(done) {
+        superagent.del(root + '/applications/' + app1.id)
+        .set('x-access-token', token3)
+        .end(function(e, res) {
+          expect(e).to.eql(null);
+          expect(res.statusCode).to.equal(200);
+          expect(res.body).to.only.have.key('result');
+          expect(res.body.result).to.equal('1 app with id ' + app1.id + ' deleted.');
+          done();
+        });
+      }); //  end delete one
+    });
+
+    describe('all apps', function() {
+      it('should deny no token/insufficient access', function(done) {
+        superagent.del(root + '/applications')
+        .end(function(e, res) {
+          expect(e).to.eql(null);
+          expect(res.statusCode).to.equal(403);
+          expect(res.body).to.only.have.keys('error', 'loggedIn');
+          expect(res.body.loggedIn).to.not.be.ok();
+          expect(res.body.error).to.equal('Access token required.');
+
+          superagent.del(root + '/applications')
+          .set('x-access-token', token2)
+          .end(function(e, res) {
+            expect(e).to.eql(null);
+            expect(res.statusCode).to.equal(403);
+            expect(res.body).to.only.have.key('error');
+            expect(res.body.error).to.equal('Request requires access level 3');
+            done();
+          });
+        });
+      }); //  end deny
+
+      it('should delete all apps', function(done) {
+        superagent.del(root + '/applications')
+        .set('x-access-token', token3)
+        .end(function(e, res) {
+          expect(e).to.eql(null);
+          expect(res.statusCode).to.equal(200);
+          expect(res.body).to.only.have.keys('result', 'num_deleted');
+          expect(res.body.num_deleted).to.be.above(0);
+          done();
+        });
+      }); //  end delete all
+
+    }); //  end describe all apps
 
   }); //  end describe deleting
 
@@ -185,8 +333,30 @@ describe('applications', function() {
       });
     }); //  end before
 
+    it('should deny no token/insufficient access', function(done) {
+      superagent.post(root + '/applications/' + app.id + '/approve')
+      .end(function(e, res) {
+        expect(e).to.eql(null);
+        expect(res.statusCode).to.equal(403);
+        expect(res.body).to.only.have.keys('error', 'loggedIn');
+        expect(res.body.loggedIn).to.not.be.ok();
+        expect(res.body.error).to.equal('Access token required.');
+
+        superagent.post(root + '/applications/' + app.id + '/approve')
+        .set('x-access-token', token2)
+        .end(function(e, res) {
+          expect(e).to.eql(null);
+          expect(res.statusCode).to.equal(403);
+          expect(res.body).to.only.have.key('error');
+          expect(res.body.error).to.equal('Request requires access level 3');
+          done();
+        });
+      });
+    }); //  end deny
+
     it('should approve an app', function(done) {
       superagent.post(root + '/applications/' + app.id + '/approve')
+      .set('x-access-token', token3)
       .send({app: app, timeslot: fake.getRandomInt(0, 167)})
       .end(function(e, res) {
         expect(e).to.eql(null);

@@ -5,12 +5,13 @@ var config = require('../config/config')();
 var db = config.db;
 var Applications = require('../models/Application');
 var utils = require('./utils/route-utils');
+var auth = require('../lib/auth');
 
 
 applications.route('/')
 
 	//	GET all current applications in the table
-	.get(function(req, res) {
+	.get(auth.requiresAccess(2), function(req, res) {
 		pg.connect(db, function(err, client, done) {
 	  	if (err) {
 				done();
@@ -93,7 +94,7 @@ applications.route('/')
 		// });	//	end pg.connect
 	})
 
-	.delete(function(req, res) {
+	.delete(auth.requiresAccess(3), function(req, res) {
 		pg.connect(db, function(err, client, done) {
 			if (err) {
 				return res.json(500, {error: err});
@@ -116,7 +117,7 @@ applications.route('/')
 	});
 
 applications.route('/:id')
-	.get(function(req, res) {
+	.get(auth.requiresAccess(2), function(req, res) {
 		pg.connect(db, function(err, client, done) {
 			if (err) {
 				done();
@@ -145,7 +146,7 @@ applications.route('/:id')
 		res.json(500, {error: 'route not implemented!'});
 	})
 
-	.delete(function(req, res) {
+	.delete(auth.requiresAccess(3), function(req, res) {
 		pg.connect(db, function(err, client, done) {
 			if (err) {
 				done();
@@ -169,7 +170,7 @@ applications.route('/:id')
 
 
 applications.route('/:id/approve')
-	.post(function(req, res) {
+	.post(auth.requiresAccess(3), function(req, res) {
 		pg.connect(db, function(err, client, done) {
 			if (err) {
 				done();
