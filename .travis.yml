@@ -3,6 +3,3 @@ node_js: stable
 services: postgresql
 before_script:
   - npm run deploy
-env:
-  matrix:
-  - NODE_ENV=production
