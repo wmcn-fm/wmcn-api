@@ -44,6 +44,9 @@ $ sudo NODE_ENV=production USER=username PW=productionpw PORT=80 DB=production n
 With the app running:
 ```shell
 $ npm test
+
+$ npm run populate
+# initializes the database and populates with fake data
 ```
 
 ## v0.1 BETA documentation
