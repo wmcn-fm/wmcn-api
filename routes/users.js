@@ -154,7 +154,7 @@ users.route('/')
 users.route('/:id')
 	//	GET one user
 	//		@param id: integer, a user's ID number
-	.get(auth.requiresAccess(1), function(req, res) {
+	.get(function(req, res) {
 		pg.connect(db, function(err, client, done) {
 			if (err) {
 				done();

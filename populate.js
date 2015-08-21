@@ -1,14 +1,14 @@
 var superagent = require('superagent');
 var forEachAsync = require('forEachAsync').forEachAsync;
 
-var fake = require('./fake');
-var config = require('../config/config')();
+var fake = require('./test/fake');
+var config = require('./config/config')();
 var root = config.api_root_url;
 
 var token;
 var apps = [];
 superagent.get(root + '/authenticate/dev')
-.query({id: 4, access: 4})
+.query({id: 4, access: 5})
 .end(function(e, res) {
   if (e) return console.log(e);
   token = res.body.token;
@@ -41,6 +41,16 @@ superagent.get(root + '/authenticate/dev')
             var pl = fake.makeRandomPlaylist();
             pl.show_id = show.id;
             playlists.push(pl);
+          }
+
+          if (res.body.result.users && res.body.result.users.length > 2) {
+            superagent.post(root + '/staff')
+            .set('x-access-token', token)
+            .send({id: res.body.result.users[2].id, level: fake.getRandomInt(2, 4)})
+            .end(function(e, res) {
+              if (e) return console.log(e);
+              console.log(res.body);
+            });
           }
 
           forEachAsync(playlists, function(next2, pl, j, arr) {

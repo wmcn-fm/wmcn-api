@@ -16,7 +16,7 @@ var utils = require('./utils/model-utils');
 Users.getAllUsers = function(client, private, cb) {
   var query;
   if (private) {
-    query = client.query("SELECT id, first_name, last_name, email, grad_year, created FROM users");
+    query = client.query("SELECT id, access, first_name, last_name, email, grad_year, created FROM users");
   } else {
     query = client.query("SELECT * FROM users");
   }
