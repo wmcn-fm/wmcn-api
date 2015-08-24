@@ -3,7 +3,7 @@ var Show = require('./Show');
 var Schedule = {};
 
 Schedule.getSchedule = function(client, cb) {
-  
+
   var schedule = new Array(168);
   forEachAsync(schedule, function(next, e, i, arr) {
     Schedule.getShowAtTime(client, i, function(err, show) {
@@ -56,6 +56,23 @@ Schedule.getShowAtTime = function(client, timeslot, cb) {
 
     }
   });
+}
+
+Schedule.getUpcoming = function(client, current_timeslot, numShows, cb) {
+  Schedule.getSchedule(client, function(err, sched) {
+    if (err) return cb(err);
+
+    var shows = [];
+    for (var i=current_timeslot + 1; i<sched.length; i++) {
+      if (shows.length === numShows) {
+        return cb(null, shows);
+      }
+
+      if (sched[i].show !== 'automator') {
+        shows.push(sched[i]);
+      }
+    }
+  })
 }
 
 

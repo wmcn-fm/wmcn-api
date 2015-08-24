@@ -81,7 +81,7 @@ schedule.route('/now')
       var ts = utils.getTimeslot(time);
       Schedule.getShowAtTime(client, ts, function(err, result) {
         done();
-        
+
         if (!err && result) {
           res.json(200, {timeslot: ts, show: result});
         } else if (!err) {
@@ -91,7 +91,34 @@ schedule.route('/now')
         }
       }); //  end getShowAtTime
     })  //  end pg.connect
-  })
+  });
+
+schedule.route('/next')
+  .get(function(req, res) {
+    pg.connect(db, function(err, client, done) {
+      if (err) {
+        done();
+        return res.json(500, {error: err});
+      }
+
+      var time = utils.getCst();
+      var ts = utils.getTimeslot(time);
+      var next = parseInt(req.query.next) || 1;
+
+      console.log(ts, next);
+      Schedule.getUpcoming(client, ts, next, function(err, result) {
+        done();
+
+        if (!err && result) {
+          res.json(200, {shows: result});
+        } else if (!err) {
+          res.json(404, {error: 'No upcoming shows', shows: 'automator'});
+        } else {
+          res.json(500, {error: err.detail});
+        }
+      }); //  end getUpcoming
+    })  //  end pg.connect
+  });
 
 schedule.route('/:timeslot')
   .get(function(req, res) {
