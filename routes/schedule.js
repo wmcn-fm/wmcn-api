@@ -69,6 +69,30 @@ schedule.route('/')
     }); //  end pg.connect
   });
 
+schedule.route('/now')
+  .get(function(req, res) {
+    pg.connect(db, function(err, client, done) {
+      if (err) {
+        done();
+        return res.json(500, {error: err});
+      }
+
+      var time = utils.getCst();
+      var ts = utils.getTimeslot(time);
+      Schedule.getShowAtTime(client, ts, function(err, result) {
+        done();
+        
+        if (!err && result) {
+          res.json(200, {timeslot: ts, show: result});
+        } else if (!err) {
+          res.json(404, {error: 'no show exists at hour ' + ts, timeslot: ts, show: 'automator'});
+        } else {
+          res.json(500, {error: err.detail});
+        }
+      }); //  end getShowAtTime
+    })  //  end pg.connect
+  })
+
 schedule.route('/:timeslot')
   .get(function(req, res) {
     pg.connect(db, function(err, client, done) {

@@ -1,3 +1,4 @@
+var moment = require('moment-timezone');
 var utils = {};
 
 
@@ -26,6 +27,18 @@ utils.hasMissingColumns = function(obj, type) {
     case 'app':
       return checkColumns(obj, appKeys);
   }
+}
+
+utils.getCst = function() {
+  var momChi = moment().tz("America/Chicago").format("MMM DD, YYYY HH:MM");
+  var dateChi = new Date(momChi);
+  return dateChi;
+}
+
+utils.getTimeslot = function(time) {
+  var day = time.getDay();
+  var hour = time.getHours();
+  return (hour * 7) + day;
 }
 
 
