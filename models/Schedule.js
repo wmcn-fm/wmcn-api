@@ -63,16 +63,25 @@ Schedule.getUpcoming = function(client, current_timeslot, numShows, cb) {
     if (err) return cb(err);
 
     var shows = [];
-    for (var i=current_timeslot + 1; i<sched.length; i++) {
-      if (shows.length === numShows) {
-        return cb(null, shows);
+    var next_slot = current_timeslot + 7;
+    var count = 0;
+
+    while (shows.length < numShows) {
+      if (count >= 167) return cb(null, shows);
+
+      if (sched[next_slot].show !== 'automator') shows.push(sched[next_slot]);
+
+      //  loop back to the next day if the counter gets within 7 of max
+      if (next_slot >= 160) {
+        next_slot = (current_timeslot % 7) + 1
+      } else {
+        next_slot += 7;
       }
 
-      if (sched[i].show !== 'automator') {
-        shows.push(sched[i]);
-      }
+      count++;
     }
-  })
+    return cb(null, shows);
+  });
 }
 
 

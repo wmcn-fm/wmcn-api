@@ -105,7 +105,6 @@ schedule.route('/next')
       var ts = utils.getTimeslot(time);
       var next = parseInt(req.query.next) || 1;
 
-      console.log(ts, next);
       Schedule.getUpcoming(client, ts, next, function(err, result) {
         done();
 
