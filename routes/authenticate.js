@@ -45,6 +45,16 @@ authenticate.route('/')
     }); //  end pg.connect
   });
 
+authenticate.route('/verify')
+  .get(function(req, res) {
+    var token = req.headers['x-access-token'];
+    if (!token) return res.json(401, {error: 'missing token'});
+    auth.verifyToken(token, function(err, decoded) {
+      if (err) return res.json(500, {error: err});
+      res.json(200, {decoded: decoded});
+    });
+  });
+
 authenticate.route('/dev')
   .get(function(req, res) {
     if (process.env.NODE_ENV == 'production') {
