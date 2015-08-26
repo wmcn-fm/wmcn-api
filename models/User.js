@@ -92,7 +92,9 @@ Users.updateAllUsers = function(client, updates, cb) {
 
 //  POST a new user to the table
 Users.addUser = function(client, u, cb) {
-  utils.getHash(null, function(err, pw, hash) {
+  var pw = null;
+  if (process.env.NODE_ENV === 'development') pw = 'password';
+  utils.getHash(pw, function(err, pw, hash) {
     if (err) cb(err);
     var usrArr = [ u.first_name, u.last_name, u.phone, u.email,
                     hash, u.grad_year, u.mac_id, u.iclass ];
