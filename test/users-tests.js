@@ -383,7 +383,7 @@ describe('user route', function() {
       .end(function(e, res) {
         expect(e).to.eql(null);
         expect(res.statusCode).to.equal(201);
-        expect(res.body).to.only.have.key('result');
+        expect(res.body).to.only.have.keys('show', 'scheduled_at');
 
         superagent.get(root + '/users/' + user.id + '/shows/current')
         .end(function(e, res) {

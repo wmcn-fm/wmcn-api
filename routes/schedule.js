@@ -43,7 +43,28 @@ schedule.route('/')
         if (err) {
           res.json(500, {error: err.detail});
         } else {
-          res.json(201, {result: 'Added show ' + result[0].show_id + ' at timeslot ' + result[0].timeslot});
+          var resObj = {show: show.show_id, scheduled_at: [], failed: []};
+          for (var i in result) {
+            var thisSlot = result[i];
+
+            if (thisSlot.hasOwnProperty('timeslot') && thisSlot.hasOwnProperty('show_id') && thisSlot.show_id === show.show_id) {
+              resObj.scheduled_at.push(thisSlot.timeslot);
+            } else {
+              console.log('problem');
+              console.log(thisSlot);
+              if (thisSlot.hasOwnProperty('error')) {
+                resObj.failed.push(thisSlot.error);
+              }
+            }
+          }
+
+          if (!resObj.scheduled_at.length > 0) {
+            delete resObj.scheduled_at;
+            return res.json(403, {error: resObj})
+          }
+
+          if (!resObj.failed.length > 0) delete resObj.failed;
+          res.json(201, resObj);
         }
       }); //  end Schedule.scheduleShow
     }); //  end pg.connect

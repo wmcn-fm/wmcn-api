@@ -4,6 +4,7 @@ var config = require('../config/config')();
 var root = config.api_root_url;
 var fake = require('./fake');
 var utils = require('./utils');
+var forEachAsync = require('forEachAsync').forEachAsync;
 
 describe('schedule', function() {
   var token1;
@@ -11,7 +12,7 @@ describe('schedule', function() {
   var token3;
   var token4;
   var show;
-  var submitted;
+  var submitted = {timeslot: fake.getRandomInt(0, 167), show_id: null};
   before(function(done) {
     superagent.get(root + '/authenticate/dev')
     .query({id: 1, access: 1})
@@ -48,6 +49,7 @@ describe('schedule', function() {
               .end(function(e, res) {
                 if (e) return console.log(e);
                 show = res.body.new_show;
+                submitted.show_id = show.id;
                 done();
               });
             });
@@ -73,16 +75,17 @@ describe('schedule', function() {
 
   describe('scheduling a show', function() {
     it('should schedule a show', function(done) {
-      submitted = {timeslot: fake.getRandomInt(0, 167), show_id: show.id};
-
       superagent.post(root + '/schedule')
       .set('x-access-token', token3)
       .send({show: submitted})
       .end(function(e, res) {
         expect(e).to.eql(null);
         expect(res.statusCode).to.equal(201);
-        expect(res.body).to.only.have.key('result');
-        expect(res.body.result).to.equal('Added show ' + submitted.show_id + ' at timeslot ' + submitted.timeslot);
+        expect(res.body).to.only.have.keys('show', 'scheduled_at');
+        expect(res.body.show).to.equal(show.id);
+        expect(res.body.scheduled_at).to.be.an('array');
+        expect(res.body.scheduled_at.length).to.equal(1);
+        expect(res.body.scheduled_at[0]).to.equal(submitted.timeslot);
         done();
       });
     }); //  end schedule show
@@ -138,13 +141,162 @@ describe('schedule', function() {
           expect(e).to.eql(null);
           expect(res.statusCode).to.equal(500);
           expect(res.body).to.only.have.key('error');
-          expect(res.body.error).to.equal('Failing row contains (' + slot.timeslot + ', ' + slot.show_id + ').');
+          expect(res.body.error).to.equal('must have a timeslot');
           done();
         });
     });
-  }); //   end posting
+
+    describe('with multiple timeslots', function() {
+      before(function(done) {
+        //  clear schedule
+        superagent.del(root + '/schedule')
+        .set('x-access-token', token4)
+        .end(function(e, res) {
+          done();
+        });
+      }); //  end before
+
+      it('should schedule all', function(done) {
+        var slot = {timeslot: [], show_id: show.id};
+        var count = fake.getRandomInt(1, 10);
+        while (count > 0) {
+          slot.timeslot.push(fake.getRandomInt(0, 167));
+          count--;
+        }
+        superagent.post(root + '/schedule')
+        .set('x-access-token', token3)
+        .send({show: slot})
+        .end(function(e, res) {
+          expect(e).to.eql(null);
+          expect(res.statusCode).to.equal(201);
+          expect(res.body).to.only.have.keys('show', 'scheduled_at');
+          expect(res.body.show).to.equal(show.id);
+          var scheduledSlots = res.body.scheduled_at;
+          forEachAsync(scheduledSlots, function(next, slot, i, arr) {
+            superagent.get(root + '/schedule/' + slot).end(function(e, res) {
+              expect(res.statusCode).to.equal(200);
+              expect(res.body).to.only.have.key('show');
+              expect(res.body.show).to.be.an('object');
+              expect(res.body.show.id).to.equal(show.id);
+              next();
+            });
+          }).then(function() {
+            done();
+          });
+        });
+      });
+
+      describe('with multiple invalid slots', function() {
+        var duplicateSlots = [];
+        var newShow;
+        before(function(done) {
+          superagent.del(root + '/schedule')
+          .set('x-access-token', token4)
+          .end(function(e, res) {
+            for (var i=0; i<fake.getRandomInt(2, 10); i++) {
+              duplicateSlots.push(fake.getRandomInt(0, 167));
+            }
+
+            superagent.post(root + '/schedule')
+              .set('x-access-token', token3)
+              .send({show: {show_id: show.id, timeslot: duplicateSlots}})
+              .end(function(e, res) {
+                expect(e).to.eql(null);
+                expect(res.body).to.only.have.keys('show', 'scheduled_at');
+                expect(res.body.show).to.equal(show.id);
+                expect(res.body.scheduled_at).to.eql(duplicateSlots);
+
+                superagent.post(root + '/shows')
+                .set('x-access-token', token3)
+                .send({show: fake.makeRandomShow()})
+                .end(function(e, res) {
+                  if (e) return console.log(e);
+                  newShow = res.body.new_show;
+                  done();
+                });
+              });
+          });
+        }); //  end before
+
+        it('should throw error if all slots are filled', function(done) {
+          superagent.post(root + '/schedule')
+          .set('x-access-token', token3)
+          .send({show: {timeslot: duplicateSlots, show_id: newShow.id} } )
+          .end(function(e, res) {
+            expect(e).to.eql(null);
+            expect(res.statusCode).to.equal(403);
+            expect(res.body).to.only.have.key('error');
+            expect(res.body.error).to.only.have.keys('show', 'failed');
+            expect(res.body.error.show).to.equal(newShow.id);
+            for (var i=0; i<res.body.error.failed.length; i++) {
+              expect(res.body.error.failed[i].failing_slot).to.equal(duplicateSlots[i]);
+            }
+            done();
+          });
+        });
+
+        it('should schedule open slots while handling errors', function(done) {
+          var randomSlots = [];
+          for (var i=0; i<fake.getRandomInt(1, 10); i++) {
+            randomSlots.push(fake.getRandomInt(0, 167));
+          }
+          var slots = duplicateSlots.concat(randomSlots);
+          var submit = {timeslot: slots, show_id: newShow.id};
+          superagent.post(root + '/schedule')
+          .set('x-access-token', token3)
+          .send({show: submit})
+          .end(function(e, res) {
+            expect(e).to.eql(null);
+            expect(res.statusCode).to.equal(201);
+            expect(res.body).to.only.have.keys('show', 'scheduled_at', 'failed');
+            expect(res.body.show).to.equal(newShow.id);
+            expect(res.body.scheduled_at).to.eql(randomSlots);
+            forEachAsync(res.body.failed, function(next, failed, i, arr) {
+              superagent.get(root + '/schedule/' + failed.failing_slot).end(function(error, resp) {
+                expect(error).to.eql(null);
+                expect(resp.body).to.only.have.key('show');
+                expect(resp.body.show.id).to.not.equal(newShow.id);
+                expect(resp.body.show.id).to.equal(show.id);
+                next();
+              })
+            }).then( function() {
+              forEachAsync(res.body.scheduled_at, function(next1, ts, i, arr) {
+                superagent.get(root + '/schedule/' + ts).end(function(e, res) {
+                  expect(e).to.eql(null);
+                  expect(res.statusCode).to.equal(200);
+                  expect(res.body).to.only.have.key('show');
+                  expect(res.body.show.id).to.equal(newShow.id);
+                  next1();
+                });
+              }).then(function() {
+                done();
+              });
+            });
+          });
+        });
+      }); //  end describe multiple invalid
+
+
+    }); //end describe multiple slots
+  }); //   end scheduling a show
 
   describe('querying a timeslot', function() {
+    before(function(done) {
+      superagent.del(root + '/schedule')
+      .set('x-access-token', token4)
+      .end(function(e, res) {
+
+        superagent.post(root + '/schedule')
+        .set('x-access-token', token3)
+        .send({show: submitted})
+        .end(function(e, res) {
+          expect(e).to.eql(null);
+          expect(res.statusCode).to.equal(201);
+          done();
+        }); //  end post schedule
+      }); //  end del schedule
+
+    })
 
     it('should retrieve the correct show', function(done) {
       superagent.get(root + '/schedule/' + submitted.timeslot)

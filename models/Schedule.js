@@ -86,16 +86,36 @@ Schedule.getUpcoming = function(client, current_timeslot, numShows, cb) {
 
 
 Schedule.scheduleShow = function(client, show, cb) {
-  var values = [show.timeslot, show.show_id];
+  var payload = [];
   var query = "INSERT INTO schedule(timeslot, show_id) \
                 VALUES($1, $2 ) RETURNING *";
-  client.query(query, values, function(err, result) {
-    if (err) {
-      cb(err);
-    } else {
-      cb(null, result.rows);
-    }
-  });
+
+  if (!show.timeslot) return cb({detail: 'must have a timeslot'});
+  if (typeof show.timeslot === 'number') show.timeslot = [show.timeslot];
+
+  forEachAsync(show.timeslot, function(next, slot, i, arr) {
+    client.query(query, [slot, show.show_id], function(err, result) {
+      if (err) {
+        var detail = err.detail;
+        var start = detail.slice(0, 16);
+        var end = detail.slice(-17, -1);
+        var slotFilled = start + slot + end + '.';
+        var errorAlreadyScheduled = detail === slotFilled;
+        if (errorAlreadyScheduled) {
+          var error = {failing_slot: slot, detail: err.detail}
+          payload.push({error: error});
+          next();
+        } else {
+          return cb(err);
+        }
+      } else {
+        payload.push(result.rows[0]);
+        next();
+      }
+    })
+  }).then(function() {
+    cb(null, payload);
+  })
 }
 
 Schedule.deleteShowAtTime = function(client, timeslot, cb) {
