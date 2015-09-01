@@ -176,9 +176,28 @@ Apps.approveApp = function(client, app, ts, cb) {
   //  add users
   forEachAsync(userInfo, function(next, usr, i, arr) {
     User.addUser(client, usr, function(err, result) {
-      if (err) return cb(err);
-      res.users.push(result.rows[0]);
-      next();
+
+      //  if the user already exists, find them and add them to res.users
+      //  so they will still be added to the show as hosts even though they
+      //  dont' need to be added to the users table
+      if (err) {
+        var detail = err.detail;
+        var start = detail.slice(0, 13);
+        var end = detail.slice(-17, -1);
+        var alreadyExists = start + usr.email + end + '.';
+        if (detail === alreadyExists) {
+          User.getUserByEmail(client, usr.email, function(err, result) {
+            if (err) return cb(err);
+            if (result[0].hasOwnProperty('id')) res.users.push(result[0]);
+            next();
+          }); //  end getUserByEmail
+        } else {
+          return cb(err);
+        }
+      } else {
+        res.users.push(result.rows[0]);
+        next();
+      }
     });
   }).then(function() {
 
