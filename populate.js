@@ -27,10 +27,19 @@ superagent.get(root + '/authenticate/dev')
     .end(function(e, res) {
       if (e) return console.log(e);
       var id = res.body.new_app.id;
+      var timeslot;
+      if ( i % 2 == 0) {
+        timeslot = fake.getRandomInt(0, 167);
+      } else {
+        timeslot = [];
+        for (var count=0; count<fake.getRandomInt(2, 15); count++) {
+          timeslot.push(fake.getRandomInt(0, 167));
+        }
+      }
 
       superagent.post(root + '/applications/' + id + '/approve')
       .set('x-access-token', token)
-      .send({timeslot: fake.getRandomInt(0, 167) })
+      .send({timeslot: timeslot })
       .end(function(e, res) {
         if (e) return console.log(e);
         console.log(res.body);
