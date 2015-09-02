@@ -189,7 +189,7 @@ applications.route('/:id/approve')
 					return res.json(404, {error: "Couldn't find application with id " + id});
 
 				} else {
-					var appOk = utils.appOk(app, ts);
+					var appOk = utils.appOk(app);
 					if (!appOk) {
 						done();
 						return res.json(400, {error: "Application is missing required information. Please review"});
@@ -200,7 +200,12 @@ applications.route('/:id/approve')
 							if (!err && result) {
 								res.json(201, {result: result});
 							} else {
-								res.json(500, {error: err});
+								if (err === 'selected timeslots are all full; show is unscheduled') {
+									res.status(409);
+								} else {
+									res.status(500);
+								}
+								res.json({error: err});
 							}
 						});	//	end approveApp
 					}

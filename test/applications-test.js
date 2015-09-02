@@ -4,6 +4,7 @@ var config = require('../config/config')();
 var root = config.api_root_url;
 var fake = require('./fake');
 var utils = require('./utils');
+var forEachAsync = require('forEachAsync').forEachAsync;
 
 describe('applications', function() {
   var user;
@@ -40,7 +41,12 @@ describe('applications', function() {
             .set('x-access-token', token4)
             .end(function(e, res) {
               if (e) return console.log(e);
-              done();
+              superagent.del(root + '/schedule')
+              .set('x-access-token', token4)
+              .end(function(e, res) {
+                if (e) return console.log(e);
+                done();
+              });
             });
           }); //  token4
         })  //  token3
@@ -329,7 +335,13 @@ describe('applications', function() {
       .end(function(e, res) {
         if (e) return console.log(e);
         app = res.body.new_app;
-        done();
+
+        superagent.del(root + '/schedule')
+        .set('x-access-token', token4)
+        .end(function(e, res) {
+          if (e) return console.log(e);
+          done();
+        });
       });
     }); //  end before
 
@@ -367,7 +379,9 @@ describe('applications', function() {
         expect(result).to.only.have.keys('users', 'num_hosts', 'timeslot', 'show');
         expect(result.users).to.be.an('array');
         expect(result.num_hosts).to.be.a('number');
-        expect(result.timeslot).to.be.within(0, 168);
+        expect(result.timeslot).to.be.an('object');
+        expect(result.timeslot.length).to.equal(1);
+        expect(result.timeslot[0]).to.only.have.keys('timeslot', 'show_id');
         expect(result.show).to.be.an('object');
         expect(result.users).to.have.length(result.num_hosts);
 
@@ -378,7 +392,7 @@ describe('applications', function() {
           expect(res.body).to.only.have.key('hosts');
           expect(res.body.hosts).to.eql(result.users);
 
-          superagent.get(root + '/schedule/' + result.timeslot)
+          superagent.get(root + '/schedule/' + result.timeslot[0].timeslot)
           .end(function(e, res) {
             expect(e).to.equal(null);
             expect(res.statusCode).to.equal(200);
@@ -390,8 +404,167 @@ describe('applications', function() {
       });
     });
 
+    describe('with multiple timeslots', function() {
+      var app;
+      var otherShow;
+      beforeEach(function(done) {
+        superagent.del(root + '/schedule')
+        .set('x-access-token', token4)
+        .end(function(e, res) {
+          if (e) return console.log(e);
+          superagent.post(root + '/applications')
+          .send({app: fake.makeRandomApp() })
+          .end(function(e, res) {
+            if (e) return console.log(e);
+            app = res.body.new_app;
 
+            superagent.post(root + '/shows')
+            .set('x-access-token', token4)
+            .send({show: fake.makeRandomShow() })
+            .end(function(e, res) {
+              if (e) return console.log(e);
+              otherShow = res.body.new_show;
+              done();
+            });
+          });
+        });
+      }); //  end before
 
+      it('should approve the app', function(done) {
+        var slots = [];
+        for (var i=0; i<fake.getRandomInt(2, 10); i++) {
+          slots.push(fake.getRandomInt(0, 167));
+        }
+        superagent.post(root + '/applications/' + app.id + '/approve')
+        .set('x-access-token', token3)
+        .send({app: app, timeslot: slots})
+        .end(function(e, res) {
+          expect(e).to.eql(null);
+          expect(res.statusCode).to.equal(201);
+          expect(res.body).to.only.have.key('result');
+
+          var result = res.body.result;
+          expect(result).to.only.have.keys('users', 'num_hosts', 'timeslot', 'show');
+          expect(result.users).to.be.an('array');
+          expect(result.num_hosts).to.be.a('number');
+          expect(result.timeslot).to.be.an('object');
+          expect(result.timeslot.length).to.equal(slots.length);
+          expect(result.show).to.be.an('object');
+          expect(result.users).to.have.length(result.num_hosts);
+
+          superagent.get(root + '/shows/' + result.show.id + '/hosts')
+          .end(function(e, res) {
+            expect(e).to.eql(null);
+            expect(res.statusCode).to.equal(200);
+            expect(res.body).to.only.have.key('hosts');
+            expect(res.body.hosts).to.eql(result.users);
+
+            forEachAsync(result.timeslot, function(next, slot, i, arr) {
+              expect(slot).to.only.have.keys('timeslot', 'show_id');
+              expect(slot.timeslot).to.equal(slots[i]);
+              superagent.get(root + '/schedule/' + slot.timeslot).end(function(e, res) {
+                expect(e).to.eql(null);
+                expect(res.body).to.only.have.key('show');
+                expect(res.body.show).to.eql(result.show);
+                next();
+              })
+            }).then(function() {
+              done();
+            });
+          });
+        });
+      }); //  end should approve the app
+
+      it('should approve but return schedule conflicts', function(done) {
+        var slots = [];
+        for (var i=0; i<fake.getRandomInt(2, 10); i++) {
+          slots.push(fake.getRandomInt(0, 167));
+        }
+        var dupSlots = slots.slice(0, 2);
+        var otherShowSubmit = {timeslot: dupSlots, show_id: otherShow.id};
+        superagent.post(root + '/schedule')
+        .set('x-access-token', token4)
+        .send({show: otherShowSubmit})
+        .end(function(e, res) {
+          expect(e).to.eql(null);
+          expect(res.body).to.only.have.keys('show', 'scheduled_at');
+
+          superagent.post(root + '/applications/' + app.id + '/approve')
+          .set('x-access-token', token3)
+          .send({app: app, timeslot: slots})
+          .end(function(e, res) {
+            expect(e).to.eql(null);
+            expect(res.statusCode).to.equal(201);
+            expect(res.body).to.only.have.key('result');
+
+            var result = res.body.result;
+            expect(result).to.only.have.keys('users', 'num_hosts', 'timeslot', 'show');
+            expect(result.users).to.be.an('array');
+            expect(result.num_hosts).to.be.a('number');
+            expect(result.timeslot).to.be.an('object');
+            expect(result.timeslot.length).to.equal(slots.length);
+            expect(result.show).to.be.an('object');
+            expect(result.users).to.have.length(result.num_hosts);
+
+            superagent.get(root + '/shows/' + result.show.id + '/hosts')
+            .end(function(e, res) {
+              expect(e).to.eql(null);
+              expect(res.statusCode).to.equal(200);
+              expect(res.body).to.only.have.key('hosts');
+              expect(res.body.hosts).to.eql(result.users);
+              forEachAsync(result.timeslot, function(next, slot, i, arr) {
+                if (slot.hasOwnProperty('error') ) {
+                  expect(slot.error.failing_slot).to.equal(dupSlots[i]);
+                  superagent.get(root + '/schedule/' + slot.error.failing_slot).end(function(e, res) {
+                    expect(e).to.eql(null);
+                    expect(res.body).to.only.have.key('show');
+                    expect(res.body.show).to.not.eql(result.show);
+                    expect(res.body.show).to.eql(otherShow);
+                    next();
+                  });
+                } else {
+                  expect(slot).to.only.have.keys('timeslot', 'show_id');
+                  expect(slot.timeslot).to.equal(slots[i]);
+                  superagent.get(root + '/schedule/' + slot.timeslot).end(function(newE, newRes) {
+                    expect(newE).to.eql(null);
+                    expect(newRes.body).to.only.have.key('show');
+                    expect(newRes.body.show).to.eql(result.show);
+                    next();
+                  });
+                }
+              }).then(function() {
+                done();
+              });
+            });
+          }); //  end app post
+        }); //  end post otherShow to schedule
+      });  // end should approve but return schedule conflicts
+
+      it('should throw error if unscheduled', function(done) {
+        var slots = [];
+        for (var i=0; i<fake.getRandomInt(2, 10); i++) {
+          slots.push(fake.getRandomInt(0, 167));
+        }
+        var otherShowSubmit = {timeslot: slots, show_id: otherShow.id};
+        superagent.post(root + '/schedule')
+        .set('x-access-token', token4)
+        .send({show: otherShowSubmit})
+        .end(function(e, res) {
+          expect(e).to.eql(null);
+          expect(res.body).to.only.have.keys('show', 'scheduled_at');
+
+          superagent.post(root + '/applications/' + app.id + '/approve')
+          .set('x-access-token', token3)
+          .send({app: app, timeslot: slots})
+          .end(function(e, res) {
+            expect(e).to.eql(null);
+            expect(res.statusCode).to.equal(409);
+            expect(res.body).to.only.have.key('error');
+            expect(res.body.error).to.equal('selected timeslots are all full; show is unscheduled');
+            done();
+          }); //  end app post
+        }); //  end post otherShow to schedule
+      });
+    }); //end describe multiple timeslots
   }); //  end describe approving
-
 }); //  end describe applications

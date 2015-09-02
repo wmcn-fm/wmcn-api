@@ -86,6 +86,7 @@ Schedule.getUpcoming = function(client, current_timeslot, numShows, cb) {
 
 
 Schedule.scheduleShow = function(client, show, cb) {
+  var allErrors = true;
   var payload = [];
   var query = "INSERT INTO schedule(timeslot, show_id) \
                 VALUES($1, $2 ) RETURNING *";
@@ -109,13 +110,18 @@ Schedule.scheduleShow = function(client, show, cb) {
           return cb(err);
         }
       } else {
+        allErrors = false;
         payload.push(result.rows[0]);
         next();
       }
     })
   }).then(function() {
-    cb(null, payload);
-  })
+    if (allErrors) {
+      cb('selected timeslots are all full; show is unscheduled');
+    } else {
+      cb(null, payload);
+    }
+  });
 }
 
 Schedule.deleteShowAtTime = function(client, timeslot, cb) {

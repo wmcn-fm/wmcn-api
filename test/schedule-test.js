@@ -224,13 +224,9 @@ describe('schedule', function() {
           .send({show: {timeslot: duplicateSlots, show_id: newShow.id} } )
           .end(function(e, res) {
             expect(e).to.eql(null);
-            expect(res.statusCode).to.equal(403);
+            expect(res.statusCode).to.equal(409);
             expect(res.body).to.only.have.key('error');
-            expect(res.body.error).to.only.have.keys('show', 'failed');
-            expect(res.body.error.show).to.equal(newShow.id);
-            for (var i=0; i<res.body.error.failed.length; i++) {
-              expect(res.body.error.failed[i].failing_slot).to.equal(duplicateSlots[i]);
-            }
+            expect(res.body.error).to.equal('selected timeslots are all full; show is unscheduled');
             done();
           });
         });

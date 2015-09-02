@@ -41,7 +41,16 @@ schedule.route('/')
         done();
 
         if (err) {
-          res.json(500, {error: err.detail});
+          console.log(err);
+          var error;
+          if (err === 'selected timeslots are all full; show is unscheduled') {
+            res.status(409);
+            error = err;
+          } else {
+            res.status(500);
+            error = err.detail;
+          }
+          res.json({error: error});
         } else {
           var resObj = {show: show.show_id, scheduled_at: [], failed: []};
           for (var i in result) {
@@ -50,8 +59,6 @@ schedule.route('/')
             if (thisSlot.hasOwnProperty('timeslot') && thisSlot.hasOwnProperty('show_id') && thisSlot.show_id === show.show_id) {
               resObj.scheduled_at.push(thisSlot.timeslot);
             } else {
-              console.log('problem');
-              console.log(thisSlot);
               if (thisSlot.hasOwnProperty('error')) {
                 resObj.failed.push(thisSlot.error);
               }

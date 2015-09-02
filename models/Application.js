@@ -217,9 +217,10 @@ Apps.approveApp = function(client, app, ts, cb) {
 
         //  post to schedule
         var slot = {timeslot: ts, show_id: res.show.id};
+        console.log(slot);
         Schedule.scheduleShow(client, slot, function(err, result) {
           if (err) return cb(err);
-          res.timeslot = result[0].timeslot;
+          res.timeslot = result;
 
           //  delete application
           Apps.deleteAppById(client, app.id, function(err ,result) {
