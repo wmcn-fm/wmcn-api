@@ -328,6 +328,8 @@ describe('applications', function() {
   }); //  end describe deleting
 
   describe('approving', function() {
+    this.timeout(12000);
+
     var app;
     before(function(done) {
       superagent.post(root + '/applications')

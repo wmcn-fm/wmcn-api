@@ -6,6 +6,7 @@ var db = config.db;
 var Applications = require('../models/Application');
 var utils = require('./utils/route-utils');
 var auth = require('../lib/auth');
+var timeout = require('connect-timeout');
 
 
 applications.route('/')
@@ -170,7 +171,7 @@ applications.route('/:id')
 
 
 applications.route('/:id/approve')
-	.post(auth.requiresAccess(3), function(req, res) {
+	.post(auth.requiresAccess(3), timeout('5s'), haltOnTimedout, function(req, res) {
 		pg.connect(db, function(err, client, done) {
 			if (err) {
 				done();
@@ -214,5 +215,8 @@ applications.route('/:id/approve')
 		});	//	end pg.connect
 	});
 
+function haltOnTimedout(req, res, next){
+	if (!req.timedout) next();
+}
 
 module.exports = applications;

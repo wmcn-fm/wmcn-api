@@ -2,6 +2,7 @@ var forEachAsync = require('forEachAsync').forEachAsync;
 var Show = require('./Show');
 var Users = {};
 var utils = require('./utils/model-utils');
+var mail = require('../mailers/mailer');
 
 /**
   *
@@ -95,15 +96,23 @@ Users.addUser = function(client, u, cb) {
   var pw = null;
   if (process.env.NODE_ENV === 'development') pw = 'password';
   utils.getHash(pw, function(err, pw, hash) {
-    if (err) cb(err);
+    if (err) return cb(err);
     var usrArr = [ u.first_name, u.last_name, u.phone, u.email,
                     hash, u.grad_year, u.mac_id, u.iclass ];
     var qStr = "INSERT INTO users(access, first_name, last_name, phone, email, \
                 hash, grad_year, mac_id, iclass) VALUES(1, $1, $2, $3, $4, $5, $6, $7, $8) RETURNING *";
     client.query(qStr, usrArr, function(err, result){
-      if (err) return cb(err)
-      cb(null, result);
-    })
+      if (err) return cb(err);
+
+      mail(u, pw, function(err, res) {
+        if (err) return cb(err);
+        console.log(err, res);
+      });
+
+      //  return statement intentionally left outside of the mail cb;
+      //  otherwise it causes requests to timeout
+      return cb(null, result);
+    });
   });
 }
 

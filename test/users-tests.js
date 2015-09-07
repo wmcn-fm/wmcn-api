@@ -64,6 +64,7 @@ describe('user route', function() {
   }); //  end empty table
 
   describe('creating a new user', function() {
+    this.timeout(5000);
     var fakeUser;
     var newUser;
     before(function(done) {

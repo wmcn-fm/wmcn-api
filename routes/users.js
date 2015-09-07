@@ -8,6 +8,7 @@ var Shows = require('../models/Show');
 var api = require('../models/api');
 var utils = require('./utils/route-utils');
 var auth = require('../lib/auth');
+var timeout = require('connect-timeout');
 
 
 users.route('/')
@@ -56,7 +57,7 @@ users.route('/')
 	})	//	end .get
 
 	//  POST a new user
-	.post(auth.requiresAccess(3), function(req, res) {
+	.post(auth.requiresAccess(3), timeout('5s'), haltOnTimedout, function(req, res) {
 		pg.connect(db, function(err, client, done) {
 			if (err) {
 				return res.json(500, {error: err});
@@ -73,35 +74,22 @@ users.route('/')
 					return res.json(400, {error: missingColumns + ' field is missing'});
 				}
 
-				api.get('/users?email=' + user.email, function(err, result, statusCode) {
+				Users.addUser(client, user, function(err, result) {
+					// console.log(err, result);
+					done();
+
 					if (err) {
-						return res.json(500, {error: err});
-						done();
-					//	if statusCode = 404, user doesn't exist
-					}	else if (!err && result && statusCode === 404) {
-						Users.addUser(client, user, function(err, result) {
-							done();
-
-							if (err) {
-								res.json(500, {error: err});
-							} else {
-								res.json(201,
-									{
-										"result": result.rowCount + " user created.",
-										"new_user": result.rows[0]
-									}
-								);
-							}
-
-						});   //  end Users.addUser
-					} else if (!err && result && statusCode === 200) {
-						return res.json(403, {error: "user with email " + result.user.email + " already exists"});
-						done();
+						res.json(500, {error: err});
 					} else {
-						return res.json(statusCode, result);
-						done();
+						res.json(201,
+							{
+								"result": result.rowCount + " user created.",
+								"new_user": result.rows[0]
+							}
+						);
 					}
-				});	//	end api.get
+
+				});   //  end Users.addUser
 			}
 		}); //  end pg.connect
 	})
@@ -324,5 +312,9 @@ users.route('/:id/shows/current')
 		});	//	end pg.connect
 	})	//	end .get
 
+
+function haltOnTimedout(req, res, next){
+	if (!req.timedout) next();
+}
 
 module.exports = users;
