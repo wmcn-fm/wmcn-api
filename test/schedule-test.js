@@ -7,6 +7,7 @@ var utils = require('./utils');
 var forEachAsync = require('forEachAsync').forEachAsync;
 
 describe('schedule', function() {
+  this.timeout(5000);
   var token1;
   var token2;
   var token3;

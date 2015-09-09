@@ -7,6 +7,7 @@ var utils = require('./utils');
 var forEachAsync = require('forEachAsync').forEachAsync;
 
 describe('applications', function() {
+  this.timeout(5000);
   var user;
   var token1;
   var token2;

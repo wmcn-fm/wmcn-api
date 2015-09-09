@@ -6,6 +6,7 @@ var fake = require('./fake');
 var utils = require('./utils');
 
 describe('authenticate', function() {
+  this.timeout(5000);
   var user;
   var token4;
   before(function(done) {

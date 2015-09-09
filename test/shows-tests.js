@@ -6,6 +6,7 @@ var fake = require('./fake');
 var utils = require('./utils');
 
 describe('show route', function() {
+  this.timeout(5000);
   var token1;
   var token2;
   var token3;
