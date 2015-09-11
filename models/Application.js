@@ -181,6 +181,8 @@ Apps.approveApp = function(client, app, ts, cb) {
       //  so they will still be added to the show as hosts even though they
       //  dont' need to be added to the users table
       if (err) {
+        if (!err.hasOwnProperty('detail')) return cb(err);
+
         var detail = err.detail;
         var start = detail.slice(0, 13);
         var end = detail.slice(-17, -1);
